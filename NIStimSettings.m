@@ -106,12 +106,7 @@ S.current.name = S.current.namelist(S.current.namevalue);
 S.current.onevoltequalsXmilliamps = S.current.onevoltequalsXmilliampslist(S.current.namevalue);
 
 %% ------ Data ------
-machinename = getenv('COMPUTERNAME');
-if strcmp(machinename,'MYLES-PC')
-    S.data.dir = 'C:\Users\Myles\Data\NIData\';
-else
-    S.data.dir = 'C:\Users\u0043883\Data\NIData\';
-end
+S.data.dir = 'C:\Users\Public\Data\NIData\';
 S.data.datatype = 'double'; %'single'
 S.data.header = ['Fs=' num2str(S.ni.rate) ', Filter=[' num2str(S.amp.filter) '], Gain=' num2str(S.amp.gain)  ', Amp=' S.amp.name];
 
