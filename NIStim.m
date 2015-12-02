@@ -201,6 +201,7 @@ D.amp = S.amp;
 D.current = S.current;
 D.data = S.data;
 D.stim = S.stim;
+D.stim = S.accel;
 sequence = S.sequence;
 sequence.data = [];
 D.sequence = sequence;
@@ -268,6 +269,7 @@ global NI S RH RC
 S.stim.stim = 1;
 NIparseStimGUI
 NImakeStim
+S.stim.firstqueue = 1;
 
 if S.sequence.on == 1
     NImakeSeqStim
@@ -437,8 +439,12 @@ if S.sequence.on == 1
 end
 
 % queue stimulation data
-queueOutputData(NI,S.stim.data);
-
+if S.stim.firstqueue == 1
+    queueOutputData(NI,S.stim.transitiondata);
+    S.stim.firstqueue = 0;
+else
+    queueOutputData(NI,S.stim.data);
+end
 
 %-------------------------------------------------------------------------
 function NIrepCount
@@ -483,6 +489,7 @@ end
 S.stim.frequency = str2num(get(S.stim.freqbut,'string'));
 S.stim.phase = str2num(get(S.stim.phasebut,'string'));
 S.stim.continuous = get(S.stim.contbut,'value');
+S.stim.ramp = get(S.stim.rampbut,'value');
 S.stim.burstdur = str2num(get(S.stim.burstdurbut,'string'));
 S.stim.burstrepperiod = str2num(get(S.stim.burstrepperiodbut,'string'));
 S.stim.numberreps = str2num(get(S.stim.numberrepsbut,'string'));
@@ -624,7 +631,7 @@ if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'sine')
     end
     
     
-elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'pulse')
+elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle','gaussian'}))
     pulse = NImakepulse;
     
     % check that pulse is charge balanced
@@ -648,6 +655,12 @@ elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
     stimData = S.stim.customdata';
     stimData = S.stim.amplitude*(stimData/max(stimData));
     stimDataTrans = stimData;
+end
+
+% apply ramp
+if S.stim.ramp == 1
+    amplitudeTrans = linspace(0,1,length(tvec))';
+    stimDataTrans = amplitudeTrans.*stimDataTrans;
 end
 
 stimData = [stimData; zvec];
@@ -707,7 +720,7 @@ end
 S.stim.data = S.sequence.data.stim1;
 
 %-------------------------------------------------------------------------
-function pulse = NImakepulse;
+function [pulse,charge1,charge2] = NImakepulse;
 global S NI
 
 sampperphase1 = round(NI.Rate*(S.stim.phase1pulsewidth/1e6));
@@ -718,7 +731,21 @@ if sampperphase1 < 2 | sampperphase2 < 2
     disp('WARNING: Pulse width is too low for this sample rate')
 end
 
-pulse = [S.stim.amplitude*(S.stim.phase1amp/100)*ones(sampperphase1,1); zeros(samppergap,1); S.stim.amplitude*(S.stim.phase2amp/100)*ones(sampperphase2,1)];
+if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'pulse')
+    part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*ones(sampperphase1,1);
+    part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*ones(sampperphase2,1);
+elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'triangle')
+    part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*triang(sampperphase1);
+    part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*triang(sampperphase2);
+elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'gaussian')
+    part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*gausswin(sampperphase1);
+    part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*gausswin(sampperphase2);
+end
+
+charge1 = trapz(part1)*(1/S.ni.rate);
+charge2 = trapz(part2)*(1/S.ni.rate);
+
+pulse = [part1; zeros(samppergap,1); part2];
 pulseperiod = 1/S.stim.frequency;
 sampperpulse = round(NI.Rate*pulseperiod);
 
@@ -784,11 +811,11 @@ end
 % make raw plot data
 S.rec.rawplotdata = [S.rec.rawplotdata(S.rec.rawplotbuffersize+1:end,:); eventData];
 
-if S.accel.accel == 1
-    S.rec.procplotdata = NIaccelprocess(S.rec.rawplotdata);
-else
+% if S.accel.accel == 1
+%     S.rec.procplotdata = NIaccelprocess(S.rec.rawplotdata);
+% else
     S.rec.procplotdata = S.rec.rawplotdata;
-end
+%end
 
 % plot data
 if S.rec.showplot == 1
@@ -934,6 +961,8 @@ S.stim.phasebuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Phas
 S.stim.phasebut = uicontrol('Parent',S.fig.tab1,'Style','edit','String',num2str(S.stim.phase),'units','normalized','position',[0.5 0.83 xb yb],'backgroundcolor',[1 1 1]);
 S.stim.contbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Continuous','units','normalized','position',[0.0 0.76 2*xb yb]);
 S.stim.contbut = uicontrol('Parent',S.fig.tab1,'Style','checkbox','units','normalized','position',[0.25 0.76 xb yb],'value',S.stim.continuous,'callback','NIStim(''continuous'')');
+S.stim.rampbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Ramp','units','normalized','position',[0.38 0.76 xb yb]);
+S.stim.rampbut = uicontrol('Parent',S.fig.tab1,'Style','checkbox','units','normalized','position',[0.5 0.76 xb yb],'value',S.stim.ramp);
 S.stim.burstdurbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Burst dur (ms)','units','normalized','position',[0.0 0.69 2*xb yb]);
 S.stim.burstdurbut = uicontrol('Parent',S.fig.tab1,'Style','edit','String',num2str(S.stim.burstdur),'units','normalized','position',[0.25 0.69 xb yb],'backgroundcolor',[1 1 1]);
 S.stim.burstrepperiodbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Burst rep period (ms)','units','normalized','position',[0.0 0.62 2*xb yb]);
@@ -1004,7 +1033,7 @@ S.rec.showplottxt = uicontrol('Parent',S.fig.tab2,'Style','text','String','Displ
 S.rec.showplotbut = uicontrol('Parent',S.fig.tab2,'Style','checkbox','units','normalized','position',[0.43 0.05 xb yb],'value',S.rec.showplot,'callback','NIStim(''showrecplot'')');
 
 if S.accel.accel == 1
-    S.rec.accelcalibbut = uicontrol('Parent',S.fig.tab2,'Style','push','units','normalized','String','Calibrate','position',[0.17 0.12 xb yb],'callback','NIStim(''accelcalib'')');
+    S.rec.accelcalibbut = uicontrol('Parent',S.fig.tab2,'Style','push','units','normalized','String','Calibrate','position',[0.17 0.05 xb yb],'callback','NIStim(''accelcalib'')');
 end
 
 NIcontinuous
@@ -1031,6 +1060,9 @@ if cval == 1 % disable burst options
     set(S.stim.burstrepperiodbut,'enable','off');
     set(S.stim.numberrepsbuttxt,'enable','off');
     set(S.stim.numberrepsbut,'enable','off');
+    set(S.stim.rampbut,'value',1);
+    set(S.stim.rampbut,'enable','on');
+    set(S.stim.rampbuttxt,'enable','on');
 elseif cval == 0 % enable burst options
     set(S.stim.burstdurbuttxt,'enable','on');
     set(S.stim.burstdurbut,'enable','on');
@@ -1038,6 +1070,9 @@ elseif cval == 0 % enable burst options
     set(S.stim.burstrepperiodbut,'enable','on');
     set(S.stim.numberrepsbuttxt,'enable','on');
     set(S.stim.numberrepsbut,'enable','on');
+    set(S.stim.rampbut,'value',0);
+    set(S.stim.rampbut,'enable','off');
+    set(S.stim.rampbuttxt,'enable','off');
 end
 
 %--------------------------------------------------------------------------
@@ -1045,7 +1080,7 @@ function NIwaveform
 global S
 
 windex = get(S.stim.waveformbut,'value');
-if strcmpi(S.stim.waveformlist(windex),'pulse') % disable pulse options
+if sum(strcmpi(S.stim.waveformlist(windex),{'pulse','triangle','gaussian'})) % disable pulse options
     set(S.stim.contbut,'enable','on');
     set(S.stim.custombut,'enable','off')
     
@@ -1141,6 +1176,14 @@ set(S.stim.phase1pwbut,'string',num2str(S.stim.phase1pulsewidth));
 set(S.stim.phase2pwbut,'string',num2str(S.stim.phase2pulsewidth));
 set(S.stim.phasegapbut,'string',num2str(S.stim.phasegap));
 
+% calculate and display charge per phase
+NIparseStimGUI
+S.stim.waveformlist(S.stim.waveformindex)
+if sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle','gaussian'}))
+    [pulse,charge1,charge2] = NImakepulse;
+    disp(num2str(charge1))
+    disp(num2str(charge2))
+end
 %--------------------------------------------------------------------------
 function NIfrequency
 global S NI
@@ -1179,7 +1222,44 @@ end
 function NIaccelcalib
 global S NI
 
-S.accel.donewcalib = 1;
+disp('Hold accelerometer still with the x-axis pointing up')
+a = input('Press ENTER when ready');
+D = NIrecord10sec('x_calib'); 
+x_still = D.data(:,S.accel.chinds);
+
+disp('Hold accelerometer still with the y-axis pointing up')
+a = input('Press ENTER when ready');
+D = NIrecord10sec('y_calib');
+y_still = D.data(:,S.accel.chinds);
+
+disp('Hold accelerometer still with the z-axis pointing up')
+a = input('Press ENTER when ready');
+D = NIrecord10sec('z_calib');
+z_still = D.data(:,S.accel.chinds);
+
+[Calibration] = calibration(x_still, y_still, z_still, S.ni.rate);
+S.accel.callibration.g0 = [Calibration.x_0g Calibration.y_0g Calibration.z_0g];
+S.accel.callibration.g1 = [Calibration.g_x Calibration.g_y Calibration.g_z];
+
+g0 = S.accel.callibration.g0;
+g1 = S.accel.callibration.g1;
+save([S.path 'AccelCalib\CalibrationData_' date],'g0','g1')
+
+S.accel.donecalib = 1;
+
+%--------------------------------------------------------------------------
+function D = NIrecord10sec(filename)
+global S
+
+% add date string with no spaces or colons
+filename = [filename strrep(strrep(datestr(now),':','-'),' ','-')];
+disp('Recording 10 seconds of data. Please wait...')
+set(S.rec.filenamebut,'String',filename)
+NIStim('startRec')
+pause(10)
+NIStim('stopRec')
+disp('Done')
+D = binread([S.data.dir filename '.bin']);
 
 %--------------------------------------------------------------------------
 function data = NIaccelprocess(data)

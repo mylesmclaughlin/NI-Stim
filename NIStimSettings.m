@@ -45,7 +45,7 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.chin = [0 1 2 3 4 5];
     S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'};
     S.ni.chout = [0 1];
-    S.ni.rate = 2e3;
+    S.ni.rate = 1e3;
     S.ni.voltrange =  [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
@@ -71,7 +71,7 @@ else % unknown device - try these settings
 end
 S.ni.nchin = length(S.ni.chin);
 S.ni.nchout = length(S.ni.chout);
-S.ni.nupdatespersec =  5; % get data and update maximum of 5 times per second
+S.ni.nupdatespersec =  2; % get data and update maximum of 5 times per second
 S.ni.buffersize = S.ni.rate/S.ni.nupdatespersec;
 S.ni.updateperiod = S.ni.buffersize/S.ni.rate;
 if S.ni.updateperiod<0.1
@@ -81,6 +81,8 @@ if S.ni.updateperiod<0.1
 end
 
 %% ------ Add Paths ----
+S.path = [pwd '\'];
+addpath([pwd '\AccelCalib\'])
 addpath([pwd '\BinaryFiles\'])
 addpath([pwd '\General\'])
 addpath([pwd '\Process\'])
@@ -122,6 +124,7 @@ S.stim.amplitude = 1;
 S.stim.frequency = 100;
 S.stim.phase = 0;
 S.stim.continuous = 1;
+S.stim.ramp = 1;
 S.stim.burstdur = 100;
 S.stim.burstrepperiod = 500;
 S.stim.numberreps = Inf;
@@ -130,7 +133,7 @@ S.stim.ampmoddepth = 0;
 S.stim.ampmodfreq = 5;
 S.stim.ampmodphase = 0;
 S.stim.waveformindex = 1;
-S.stim.waveformlist = {'sine','pulse','custom'}; % pulse, custom
+S.stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
 S.stim.phase1pulsewidth = 50;
 S.stim.phase2pulsewidth = 50;
 S.stim.phase1amp = 100;
@@ -194,18 +197,25 @@ S.rec.listen = 0;
 S.rec.listenchind = 2;
 S.rec.listendata = [];
 
+%% ------ Accelerometer ------
+S.accel.accel = 1;
+if exist([S.data.dir 'AccelCalib\CalibrationData_' date '.mat'],'file')~=0
+    load([S.data.dir 'AccelCalib\CalibrationData_' date '.mat']);
+    S.accel.donecalib = 1;
+    S.accel.callibration.g0 = g0;
+    S.accel.callibration.g1 = g1;
+else
+    S.accel.donecalib = 0;
+    S.accel.callibration.g0 = [0 0 0];
+    S.accel.callibration.g1 = [0 0 0];
+end
+S.accel.bandpass = [0.25 50];
+S.accel.filterorder = 2;
+[S.accel.filterb S.accel.filtera] = butter(S.accel.filterorder,S.accel.bandpass/(S.ni.rate/2),'bandpass');
+S.accel.chinds = [4 5 6];
+
 %% ------ Process ------
 S.proc.proc = 0;
 S.proc.type = 'accel'; %'trigAvg';  %'trigSpike'; %   %
 eval(['S = NIprocess_' S.proc.type '(''settings'',S);']);
 
-
-%% ------ Accelerometer ------
-S.accel.accel = 0;
-S.accel.calib = [0 0 0];
-S.accel.donewcalib = 0;
-S.accel.lasteventdata = [0 0 0];
-S.accel.bandpass = [0.25 50];
-S.accel.filterorder = 2;
-[S.accel.filterb S.accel.filtera] = butter(S.accel.filterorder,S.accel.bandpass/(S.ni.rate/2),'bandpass');
-S.accel.chinds = [4 5 6];
