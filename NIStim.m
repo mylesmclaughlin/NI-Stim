@@ -720,7 +720,7 @@ end
 S.stim.data = S.sequence.data.stim1;
 
 %-------------------------------------------------------------------------
-function [pulse,charge1,charge2] = NImakepulse;
+function [pulse,charge1,charge2,interpeakgap] = NImakepulse;
 global S NI
 
 sampperphase1 = round(NI.Rate*(S.stim.phase1pulsewidth/1e6));
@@ -735,15 +735,60 @@ if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'pulse')
     part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*ones(sampperphase1,1);
     part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*ones(sampperphase2,1);
 elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'triangle')
-    part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*triang(sampperphase1);
-    part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*triang(sampperphase2);
+    widthhalfmax1 = sampperphase1;
+    widthhalfmax2 = sampperphase2;
+    
+    go = 1;
+    while go
+        sampperphase1 = sampperphase1+1;
+        test = fwhm([1:sampperphase1], triang(sampperphase1));
+        if test >= widthhalfmax1;
+            go = 0;
+        end
+    end
+    samppergap = samppergap - (sampperphase1-widthhalfmax1)/2;
+    go = 1;
+    while go
+        sampperphase2 = sampperphase2+1;
+        test = fwhm([1:sampperphase2], triang(sampperphase2));
+        if test >= widthhalfmax1;
+            go = 0;
+        end
+    end
+    samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
+    
+    part1 = S.stim.amplitude*(S.stim.phase1amp/100)*triang(sampperphase1);
+    part2 = S.stim.amplitude*(S.stim.phase2amp/100)*triang(sampperphase2);
 elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'gaussian')
-    part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*gausswin(sampperphase1);
-    part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*gausswin(sampperphase2);
+    widthhalfmax1 = sampperphase1;
+    widthhalfmax2 = sampperphase2;
+    
+    go = 1;
+    while go
+        sampperphase1 = sampperphase1+1;
+        test = fwhm([1:sampperphase1], gausswinzero(sampperphase1));
+        if test >= widthhalfmax1;
+            go = 0;
+        end
+    end
+    samppergap = samppergap - (sampperphase1-widthhalfmax1)/2;
+    go = 1;
+    while go
+        sampperphase2 = sampperphase2+1;
+        test = fwhm([1:sampperphase2], gausswinzero(sampperphase2));
+        if test >= widthhalfmax1;
+            go = 0;
+        end
+    end
+    samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
+  
+    part1 = S.stim.amplitude*(S.stim.phase1amp/100)*gausswinzero(sampperphase1);
+    part2 = S.stim.amplitude*(S.stim.phase2amp/100)*gausswinzero(sampperphase2);
 end
 
-charge1 = trapz(part1)*(1/S.ni.rate);
-charge2 = trapz(part2)*(1/S.ni.rate);
+charge1 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part1)*(1/S.ni.rate); % charge in microC
+charge2 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part2)*(1/S.ni.rate);
+interpeakgap = (sampperphase1/2 + samppergap + sampperphase2/2)/S.ni.rate * 1e6;
 
 pulse = [part1; zeros(samppergap,1); part2];
 pulseperiod = 1/S.stim.frequency;
@@ -981,7 +1026,7 @@ S.stim.waveformbut = uicontrol('Parent',S.fig.tab1,'Style','popupmenu','String',
 S.stim.custombut = uicontrol('Parent',S.fig.tab1,'Style','edit','String','','units','normalized','position',[0.4 0.41 xb*1.85 yb],'backgroundcolor',[1 1 1],'callback','NIStim(''cutsomwaveform'')');
 S.stim.phase1pwbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Phase 1:   PW (us)','units','normalized','position',[0.0 0.34 2*xb yb]);
 S.stim.phase1pwbut = uicontrol('Parent',S.fig.tab1,'Style','edit','String',num2str(S.stim.phase1pulsewidth),'units','normalized','position',[0.25 0.34 xb yb],'backgroundcolor',[1 1 1],'callback','NIStim(''pulsewidth'')');
-S.stim.pahsegapbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Inter-phase gap (us)','units','normalized','position',[0.0 0.27 2*xb yb]);
+S.stim.phasegapbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Inter-phase gap (us)','units','normalized','position',[0.0 0.27 2*xb yb]);
 S.stim.phasegapbut = uicontrol('Parent',S.fig.tab1,'Style','edit','String',num2str(S.stim.phasegap),'units','normalized','position',[0.25 0.27 xb yb],'backgroundcolor',[1 1 1],'callback','NIStim(''pulsewidth'')');
 S.stim.phase2pwbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Phase 2:   PW (us)','units','normalized','position',[0.0 0.20 2*xb yb]);
 S.stim.phase2pwbut = uicontrol('Parent',S.fig.tab1,'Style','edit','String',num2str(S.stim.phase2pulsewidth),'units','normalized','position',[0.25 0.20 xb yb],'backgroundcolor',[1 1 1],'callback','NIStim(''pulsewidth'')');
@@ -989,6 +1034,13 @@ S.stim.phase1ampbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','
 S.stim.phase1ampbut = uicontrol('Parent',S.fig.tab1,'Style','edit','String',num2str(S.stim.phase1amp),'units','normalized','position',[0.5 0.34 xb yb],'backgroundcolor',[1 1 1]);
 S.stim.phase2ampbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Amp (%)','units','normalized','position',[0.38 0.20 xb yb]);
 S.stim.phase2ampbut = uicontrol('Parent',S.fig.tab1,'Style','edit','String',num2str(S.stim.phase2amp),'units','normalized','position',[0.5 0.20 xb yb],'backgroundcolor',[1 1 1]);
+
+S.stim.phase1Cperphasebuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Charge/phase:','units','normalized','position',[0.62 0.34 1.5*xb yb]);
+S.stim.phase1Cperphasebut = uicontrol('Parent',S.fig.tab1,'Style','text','String','','units','normalized','position',[0.8 0.34 xb yb]);
+S.stim.phase2Cperphasebuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Charge/phase:','units','normalized','position',[0.62 0.20 1.5*xb yb]);
+S.stim.phase2Cperphasebut = uicontrol('Parent',S.fig.tab1,'Style','text','String','','units','normalized','position',[0.8 0.20 xb yb]);
+S.stim.interpeakgapbuttxt = uicontrol('Parent',S.fig.tab1,'Style','text','String','Inter peak gap:','units','normalized','position',[0.62 0.27 1.5*xb yb]);
+S.stim.interpeakgapbut = uicontrol('Parent',S.fig.tab1,'Style','text','String','','units','normalized','position',[0.8 0.27 xb yb]);
 
 S.stim.stimrecbut  = uicontrol('Parent',S.fig.tab1,'Style','push','String','Stim & Rec','Callback','NIStim(''stimRec'')','units','normalized','position',[0.6 0.05 xb yb]);
 S.stim.stimprocbut  = uicontrol('Parent',S.fig.tab1,'Style','push','String','Stim & Proc','Callback','NIStim(''stimProc'')','units','normalized','position',[0.725 0.05 xb yb]);
@@ -1091,7 +1143,7 @@ if sum(strcmpi(S.stim.waveformlist(windex),{'pulse','triangle','gaussian'})) % d
     
     set(S.stim.phase1pwbuttxt,'enable','on');
     set(S.stim.phase1pwbut,'enable','on');
-    set(S.stim.pahsegapbuttxt,'enable','on');
+    set(S.stim.phasegapbuttxt,'enable','on');
     set(S.stim.phasegapbut,'enable','on');
     set(S.stim.phase2pwbuttxt,'enable','on');
     set(S.stim.phase2pwbut,'enable','on');
@@ -1099,6 +1151,13 @@ if sum(strcmpi(S.stim.waveformlist(windex),{'pulse','triangle','gaussian'})) % d
     set(S.stim.phase1ampbut,'enable','on');
     set(S.stim.phase2ampbuttxt,'enable','on');
     set(S.stim.phase2ampbut,'enable','on');
+    
+    set(S.stim.phase1Cperphasebuttxt,'enable','on');
+    set(S.stim.phase1Cperphasebut,'enable','on');
+    set(S.stim.phase2Cperphasebuttxt,'enable','on');
+    set(S.stim.phase2Cperphasebut,'enable','on');
+    set(S.stim.interpeakgapbuttxt,'enable','on');
+    set(S.stim.interpeakgapbut,'enable','on');
 elseif strcmpi(S.stim.waveformlist(windex),'sine')
     set(S.stim.contbut,'enable','on');
     
@@ -1111,7 +1170,7 @@ elseif strcmpi(S.stim.waveformlist(windex),'sine')
     
     set(S.stim.phase1pwbuttxt,'enable','off');
     set(S.stim.phase1pwbut,'enable','off');
-    set(S.stim.pahsegapbuttxt,'enable','off');
+    set(S.stim.phasegapbuttxt,'enable','off');
     set(S.stim.phasegapbut,'enable','off');
     set(S.stim.phase2pwbuttxt,'enable','off');
     set(S.stim.phase2pwbut,'enable','off');
@@ -1119,6 +1178,15 @@ elseif strcmpi(S.stim.waveformlist(windex),'sine')
     set(S.stim.phase1ampbut,'enable','off');
     set(S.stim.phase2ampbuttxt,'enable','off');
     set(S.stim.phase2ampbut,'enable','off');
+    
+    
+    set(S.stim.phase1Cperphasebuttxt,'enable','off');
+    set(S.stim.phase1Cperphasebut,'enable','off');
+    set(S.stim.phase2Cperphasebuttxt,'enable','off');
+    set(S.stim.phase2Cperphasebut,'enable','off');
+    set(S.stim.interpeakgapbuttxt,'enable','off');
+    set(S.stim.interpeakgapbut,'enable','off');
+    
 elseif strcmpi(S.stim.waveformlist(windex),'custom')
     set(S.stim.contbut,'enable','off','value',0);
     NIcontinuous
@@ -1132,7 +1200,7 @@ elseif strcmpi(S.stim.waveformlist(windex),'custom')
     
     set(S.stim.phase1pwbuttxt,'enable','off');
     set(S.stim.phase1pwbut,'enable','off');
-    set(S.stim.pahsegapbuttxt,'enable','off');
+    set(S.stim.phasegapbuttxt,'enable','off');
     set(S.stim.phasegapbut,'enable','off');
     set(S.stim.phase2pwbuttxt,'enable','off');
     set(S.stim.phase2pwbut,'enable','off');
@@ -1140,7 +1208,16 @@ elseif strcmpi(S.stim.waveformlist(windex),'custom')
     set(S.stim.phase1ampbut,'enable','off');
     set(S.stim.phase2ampbuttxt,'enable','off');
     set(S.stim.phase2ampbut,'enable','off');
+    
+    set(S.stim.phase1Cperphasebuttxt,'enable','off');
+    set(S.stim.phase1Cperphasebut,'enable','off');
+    set(S.stim.phase2Cperphasebuttxt,'enable','off');
+    set(S.stim.phase2Cperphasebut,'enable','off');
+    set(S.stim.interpeakgapbuttxt,'enable','off');
+    set(S.stim.interpeakgapbut,'enable','off');
+    
 end
+NIpulsewidth
 
 %--------------------------------------------------------------------------
 function NIcustomwaveform
@@ -1178,11 +1255,23 @@ set(S.stim.phasegapbut,'string',num2str(S.stim.phasegap));
 
 % calculate and display charge per phase
 NIparseStimGUI
-S.stim.waveformlist(S.stim.waveformindex)
 if sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle','gaussian'}))
-    [pulse,charge1,charge2] = NImakepulse;
-    disp(num2str(charge1))
-    disp(num2str(charge2))
+    [pulse,charge1,charge2,interpeakgap] = NImakepulse;
+    set(S.stim.phase1Cperphasebut,'String',[num2str(charge1) ' uC'])
+    set(S.stim.phase2Cperphasebut,'String',[num2str(charge2) ' uC'])
+    set(S.stim.interpeakgapbut,'String',[num2str(interpeakgap) ' uS'])
+    pf = findobj('tag','pulseFig');
+    if isempty(pf)
+        figure('tag','pulseFig')
+    else
+        figure(pf)
+    end
+    plot([0:length(pulse)-1]/S.ni.rate * 1e6,pulse,'.-')
+    hold on
+    xlabel('Time (\muS)')
+    xlim([0 2*(S.stim.phase1pulsewidth + S.stim.phase2pulsewidth + S.stim.phasegap)])
+    ylim([min(pulse)*1.1 max(pulse)*1.1])
+    figure(S.fig.fhdl)
 end
 %--------------------------------------------------------------------------
 function NIfrequency

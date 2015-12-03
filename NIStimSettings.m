@@ -50,16 +50,16 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
     disp(['Applying settings for ' S.ni.description])
-    S.ni.chin = [1 2 3]; %[1 2 3 18 19 22];           %[1 2 3]; %  %[18 19 22 23]; % %  % % %
-    S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'}; %{'Current','Voltage','Trigger'};
+    S.ni.chin = [1 2]; %[1 2 3]; %[1 2 3 18 19 22];           %[1 2 3]; %  %[18 19 22 23]; % %  % % %
+    S.ni.chilabel = {'Current','Voltage'}; %{'Current','Voltage','Trigger','X','Y','Z'}; %{'Current','Voltage','Trigger'};
     S.ni.chout = [0 1 2]; % 0 out is always trigger
-    S.ni.rate = 20e3;
-    S.ni.voltrange = [-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %[-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
-    S.ni.inputtype = {'Differential','Differential','Differential'}; %{'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded'};
+    S.ni.rate = 200e3;
+    S.ni.voltrange = [-1 1; -10 10];%[-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %[-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
+    S.ni.inputtype = {'SingleEnded','SingleEnded'}; %{'Differential','Differential','Differential'}; %{'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded'};
 elseif strcmp(S.ni.description,'no device')
     S.ni.chin = [1 2 3 18 19 22];
     S.ni.chout = [0 1 2];
-    S.ni.rate = 20e3;
+    S.ni.rate = 100e3;
     S.ni.voltrange = [-10 10];
     S.ni.chilabel = {'Data','Current','Voltage','Trigger'};
 else % unknown device - try these settings
@@ -136,8 +136,8 @@ S.stim.waveformindex = 1;
 S.stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
 S.stim.phase1pulsewidth = 50;
 S.stim.phase2pulsewidth = 50;
-S.stim.phase1amp = 100;
-S.stim.phase2amp = -100;
+S.stim.phase1amp = -100;
+S.stim.phase2amp = 100;
 S.stim.phasegap = 0;
 S.stim.stimdir = 'C:\Users\u0043883\Google Drive\Work\MATLAB\NI-Stim\Stimuli\';
 S.stim.customfilename = '';
