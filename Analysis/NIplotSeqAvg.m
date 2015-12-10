@@ -51,9 +51,9 @@ if ~isempty(accelInd)
     [filterb filtera] = butter(filterorder,bandpass/(A.fs/2),'bandpass');
     
     for n = 1:A.nSeq
-        dataX = squeeze(A.avgData(n,:,accelInd(i)));
-        dataY = squeeze(A.avgData(n,:,accelInd(i)));
-        dataZ = squeeze(A.avgData(n,:,accelInd(i)));
+        dataX = squeeze(A.avgData(n,:,accelInd(1)));
+        dataY = squeeze(A.avgData(n,:,accelInd(2)));
+        dataZ = squeeze(A.avgData(n,:,accelInd(3)));
         data = sqrt(dataX.^ + dataY.^2 + dataZ.^2);
         zInd = find(A.tvec<0);
         stimStartInd = zInd(end)+1;
@@ -117,11 +117,11 @@ if ~isempty(accelInd)
                 calib = mean(allData(j,zInd));
                 allData(j,:) = allData(j,:) - calib;
                 allData(j,:) = filter(filterb,filtera,allData(j,:));
-                allData(j,:) = cumtrapz(allData(j,:));
+                allData(j,:) = cumtrapz(allData(j,:)); % velocity
                 allData(j,:) = filter(filterb,filtera,allData(j,:));
-                allData(j,:) = cumtrapz(allData(j,:));
+                allData(j,:) = cumtrapz(allData(j,:)); % displacement
+                sumData(j) = sum(abs(allData(j,stimStartInd:end)));
             end
-            
             
             ydata = mean(allData);
             ydata_std = std(allData);
@@ -132,6 +132,8 @@ if ~isempty(accelInd)
             ymin(n) = min(ydata);
             [respAmp(n),ind] = max(abs(ydata(stimStartInd:end)));
             respSTD(n) = ydata_std(ind);
+%             respAmp(n) = mean(sumData);
+%             respSTD(n) = std(sumData);
             respAmpE(n) = max(abs(ydataE(stimStartInd:end)));
             respAmpS(n) = max(abs(ydataS(stimStartInd:end)));
             

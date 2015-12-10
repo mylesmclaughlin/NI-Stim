@@ -103,7 +103,6 @@ if S.current.present == 1
     D = CurrentControl('disableOutput',S.current.name);
 end
 
-
 % Start NI object
 if S.ni.connected == 1
     if ~NI.IsRunning
@@ -165,7 +164,7 @@ function fullfileName = NImakeFileName(fullfileName)
 
 [path,fname,ext] = fileparts(fullfileName);
 refFile = [path '\' fname];
-extList = {'.bin','.nis','.proc','.qs'};
+extList = {'.bin','.nis','.niso','.proc','.qs'};
 if exist([refFile extList{1}],'file') | exist([refFile extList{2}],'file') | exist([refFile extList{3}],'file') | exist([refFile extList{4}],'file')
     uind = strfind(fname,'_');
     if length(uind)>1
@@ -193,21 +192,34 @@ S.rec.fullfileName = NImakeFileName(S.rec.fullfileName);
 set(S.fig.fhdl,'name',['NIStim - Recording ' S.rec.fullfileName])
 set(S.rec.recbut,'String','Stop Rec','Callback','NIStim(''stopRec'')','backgroundcolor',[1 0 0]);
 
+NIsaveStimParam
+
+%-------------------------------------------------------------------------
+function NIsaveStimParam(stimOnly)
+global NI S
+
+if nargin== 0
+    stimOnly = 0;
+end
 % save file with all settings
-NIparseStimGUI; % make sure latest stim param are saved
+%NIparseStimGUI; % make sure latest stim param are saved
 D.timestamp = datestr(now);
 D.ni = S.ni;
 D.amp = S.amp;
 D.current = S.current;
 D.data = S.data;
 D.stim = S.stim;
-D.stim = S.accel;
+D.accel = S.accel;
 sequence = S.sequence;
 sequence.data = [];
 D.sequence = sequence;
 
 [path,fname,ext] = fileparts(S.rec.fullfileName);
-save([path '\' fname '.nis'],'D','-mat');
+if stimOnly == 1
+    save([path '\' fname '.niso'],'D','-mat');
+else
+    save([path '\' fname '.nis'],'D','-mat');
+end
 
 %-------------------------------------------------------------------------
 function NIstopRec
@@ -263,7 +275,7 @@ delete(T)
 
 %-------------------------------------------------------------------------
 function NIstartStim
-global NI S RH RC
+global NI S RH 
 
 % Make stimulus
 S.stim.stim = 1;
@@ -292,12 +304,6 @@ S.stim.data = zeros(size(S.stim.data));
 queueOutputData(NI,S.stim.data);
 queueOutputData(NI,S.stim.data);
 
-% start rep counter
-RC = timer;
-RC.period = S.stim.buffersize/NI.Rate;
-RC.ExecutionMode = 'fixedRate';
-RC.TimerFcn = 'NIStim(''repCount'')';
-start(RC)
 
 % Start NI card
 NI.startBackground();
@@ -325,6 +331,18 @@ set(S.stim.stimrecprocbut,'enable','off')
 % save current stim parameters
 NIwriteCurrentStimParam
 
+if S.rec.rec == 0
+    % params normally saved with recording
+    % but if no recording save a record anyway
+    
+    S.rec.filename = get(S.rec.filenamebut,'String');
+    S.rec.fullfileName = [S.data.dir S.rec.filename '.bin'];
+    % check file name and append 1 if it already exists
+    S.rec.fullfileName = NImakeFileName(S.rec.fullfileName);
+
+    stimOnly = 1;
+    NIsaveStimParam(stimOnly);
+end
 %-------------------------------------------------------------------------
 function NIupdateStim
 global NI S
@@ -342,7 +360,7 @@ NIwriteCurrentStimParam
 
 %-------------------------------------------------------------------------
 function NIstopStim
-global NI S LH RH RC
+global NI S LH RH 
 
 set(S.stim.startbut,'String','Stopping...','enable','off')
 set(S.rec.startstimbut,'String','Stopping...','enable','off')
@@ -369,11 +387,10 @@ end
 % disp(['Scans queued = ' num2str(NI.ScansQueued) '; Last Queued = ' num2str(lastQueued)]);
 % disp('Out of while loop')
 holdbuffer = S.stim.data;
-stop(RC); 
-delete(RC);
-S.stim.data = zeros(size(S.stim.data));
-bufferDur = S.stim.buffersize/NI.Rate;
-pause(bufferDur*2)
+
+% S.stim.data = zeros(size(S.stim.data));
+% bufferDur = S.stim.buffersize/NI.Rate;
+% pause(bufferDur*2)
 
 % Disable current source
 if S.current.present == 1
@@ -385,28 +402,29 @@ if S.rec.rec == 1;
     NIstopRec
 end
 
-disp('1')
+%disp('1')
 % Delete channels
 NI.stop
-disp('2')
+%disp('2')
 NI.IsContinuous = 0;
-disp('3')
+%disp('3')
 delete(RH)
 %delete(LH)
-disp('4')
+%disp('4')
 
 for n = length(NI.Channels):-1:1
     if strmatch('ao',NI.Channels(n).ID)
         removeChannel(NI,n)
     end
 end
-disp('5')
+%disp('5')
 NI.IsContinuous = 1;
 %LH = addlistener(NI,'DataAvailable',@(src,event) NIStim(src,event,1));
 %NI.NotifyWhenDataAvailableExceeds = S.ni.buffersize;
 NI.startBackground();
-disp('6')
+%disp('6')
 S.stim.data = holdbuffer;
+
 % Update GUI
 set(S.stim.startbut,'String','Stimulate','Callback','NIStim(''startStim'')','backgroundcolor',[0 1 0],'enable','on')
 set(S.rec.startstimbut,'String','Stimulate','Callback','NIStim(''startStim'')','backgroundcolor',[0 1 0],'enable','on')
@@ -414,13 +432,14 @@ set(S.stim.updatebut,'enable','off')
 set(S.stim.stimrecbut,'enable','on')
 set(S.stim.stimprocbut,'enable','on')
 set(S.stim.stimrecprocbut,'enable','on')
-
+    
 %-------------------------------------------------------------------------
 function NIqueueStim(event)
 global S NI
 
 % update stim to next sequence
 if S.sequence.on == 1
+    S.stim.firstqueue = 0;
     S.sequence.thisseq = S.sequence.thisseq+1;
     if S.stim.numberreps==Inf % continuously loop through seqIndex
         S.sequence.loopthisseq = mod(S.sequence.thisseq,S.sequence.nseq);
@@ -446,35 +465,42 @@ else
     queueOutputData(NI,S.stim.data);
 end
 
+% keep track of reps
+NIrepCount
+
 %-------------------------------------------------------------------------
 function NIrepCount
-global S NI
+global S NI RH 
 
-% count reps
+% count reps here - more accurate
 if S.stim.continuous == 0
     if S.sequence.on == 0
         S.stim.repsplayed = S.stim.repsplayed + 1;
         set(S.stim.repsplayedbut,'String',['rep ' num2str(S.stim.repsplayed)]);
     elseif S.sequence.on == 1
         S.stim.repsplayed = floor(S.sequence.thisseq/S.sequence.nseq);
-        set(S.stim.repsplayedbut,'String',['rep ' num2str(S.stim.repsplayed) ', seq ' num2str(S.sequence.seqIndex(S.sequence.loopthisseq))]);
-    end
-end
-
-% stop stim is all reps played
-if S.sequence.on == 0
-    if S.stim.repsplayed >= S.stim.numberreps
-        pause(0.1)
-        evalin('base','NIStim(''stopStim'')')
-    end
-elseif S.sequence.on == 1
-    if S.stim.numberreps ~= Inf
-        if S.sequence.thisseq >= length(S.sequence.seqIndex)
-            pause(0.1)
-            evalin('base','NIStim(''stopStim'')')
+        if S.sequence.loopthisseq <= length(S.sequence.seqIndex)
+            set(S.stim.repsplayedbut,'String',['rep ' num2str(S.stim.repsplayed) ', seq ' num2str(S.sequence.seqIndex(S.sequence.loopthisseq))]);
+        else
+            set(S.stim.repsplayedbut,'String',['rep ' num2str(S.stim.repsplayed) ', seq ' num2str(S.sequence.seqIndex(end))]);
         end
     end
 end
+
+% %stop stim is all reps played
+% if S.sequence.on == 0
+%     if S.stim.repsplayed >= S.stim.numberreps
+%         pause(0.1)
+%         %NIstopStim
+%     end
+% elseif S.sequence.on == 1
+%     if S.stim.numberreps ~= Inf
+%         if S.sequence.thisseq >= length(S.sequence.seqIndex)
+%             pause(0.1)
+%             %NIstopStim
+%         end
+%     end
+% end
 
 %-------------------------------------------------------------------------
 function NIparseStimGUI
@@ -635,7 +661,7 @@ elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle'
     pulse = NImakepulse;
     
     % check that pulse is charge balanced
-    cb = abs(sum(pulse))
+    cb = abs(sum(pulse));
     if cb>0.000001
         disp('Pulse is not charge balanced')
         pulse = zeros(size(pulse));

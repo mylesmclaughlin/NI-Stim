@@ -3,14 +3,19 @@ function A = NImakeSeqAvg(binFile,detrendChIndex)
 if nargin<2
     detrendChIndex = [];
 end
-% load .nis file
+%load .nis file
 [p,f,e] = fileparts(binFile);
-N = load([p '\' f '.nis'],'-mat');
+try
+    N = load([p '\' f '.niso'],'-mat');
+catch
+    N = load([p '\' f '.nis'],'-mat');
+end
+
 N = N.D;
 A.repDur = N.stim.burstdur;
 A.burstrepperiod = N.stim.burstrepperiod;
 
-% load bin file
+%load bin file
 extraTime = 100;
 sampWin = [-extraTime A.burstrepperiod]; %A.repDur+extraTime]; % ms
 D = binread(binFile);
@@ -21,10 +26,12 @@ sampVec = [round(sampWin(1)/1e3*fs):round(sampWin(2)/1e3*fs)];
 trigChInd = 3;
 trigLevel = 0.5;
 
-% detrend data
+%detrend data
 for n = 1:length(detrendChIndex)
     D.data(:,detrendChIndex(n)) = detrend(D.data(:,detrendChIndex(n)));
 end
+
+
 
 part = 1;
 allData = [];
@@ -47,7 +54,7 @@ while part
             disp('WARNING: Trigger error in data processing')
             return
         elseif trigInd(n)+sampVec(end)>=length(D.data)
-            % keep bit of data for next run
+%            keep bit of data for next run
             keepData = D.data(trigInd(n)+(round(sampWin(1)/1e3*fs))*2:end,:);
             break
         end
@@ -79,8 +86,10 @@ for n = 1:length(A.seq)
     eval(['A.allData' num2str(n) ' = A.allData(find(A.seqIndex==n),:,:);']); 
     if length(find(A.seqIndex==n)) == 1
         eval(['A.avgData(' num2str(n) ',:,:) = squeeze(A.allData(find(A.seqIndex==n),:,:));']);
+        eval(['A.stdData(' num2str(n) ',:,:) = squeeze(A.allData(find(A.seqIndex==n),:,:));']);
     else
         eval(['A.avgData(' num2str(n) ',:,:) = squeeze(mean(A.allData(find(A.seqIndex==n),:,:)));']);
+        eval(['A.stdData(' num2str(n) ',:,:) = squeeze(std(A.allData(find(A.seqIndex==n),:,:)));']);
     end
 end
 

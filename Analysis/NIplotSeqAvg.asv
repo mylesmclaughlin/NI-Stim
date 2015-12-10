@@ -51,9 +51,9 @@ if ~isempty(accelInd)
     [filterb filtera] = butter(filterorder,bandpass/(A.fs/2),'bandpass');
     
     for n = 1:A.nSeq
-        dataX = squeeze(A.avgData(n,:,accelInd(i)));
-        dataY = squeeze(A.avgData(n,:,accelInd(i)));
-        dataZ = squeeze(A.avgData(n,:,accelInd(i)));
+        dataX = squeeze(A.avgData(n,:,accelInd(1)));
+        dataY = squeeze(A.avgData(n,:,accelInd(2)));
+        dataZ = squeeze(A.avgData(n,:,accelInd(3)));
         data = sqrt(dataX.^ + dataY.^2 + dataZ.^2);
         zInd = find(A.tvec<0);
         stimStartInd = zInd(end)+1;
@@ -77,47 +77,64 @@ if ~isempty(accelInd)
         ymax = [];
         ymin = [];
         for n = 1:A.nSeq
-        
-%             data = squeeze(A.avgData(n,:,accelInd(i)));
-%             eval(['dataE = squeeze(A.allData' num2str(n) '(end,:,accelInd(i)));']);
-%             eval(['dataS = squeeze(A.allData' num2str(n) '(1,:,accelInd(i)));']);
-%             zInd = find(A.tvec<0);
-%             stimStartInd = zInd(end)+1;
-%             calib = mean(data(zInd));
-%             calibE = mean(dataE(zInd));
-%             calibS = mean(dataS(zInd));
-%             data = data - calib;
-%             dataE = dataE - calibE;
-%             dataS = dataS - calibS;
-%             %data(stimStartInd:end) = detrend(data(stimStartInd:end));
-%             
-%             data = filter(filterb,filtera,data);
-%             data = cumtrapz(data);
-%             data = filter(filterb,filtera,data);
-%             data = cumtrapz(data);
-%             ydata = data;
-%             
-%             dataE = filter(filterb,filtera,dataE);
-%             dataE = cumtrapz(dataE);
-%             dataE = filter(filterb,filtera,dataE);
-%             dataE = cumtrapz(dataE);
-%             ydataE = dataE;
-%             
-%             dataS = filter(filterb,filtera,dataS);
-%             dataS = cumtrapz(dataS);
-%             dataS = filter(filterb,filtera,dataS);
-%             dataS = cumtrapz(dataS);
-%             ydataS = dataS;
-             eval(['allData = squeeze(A.allData' num2str(n) '(:,:,accelInd(i)));'])
-             
+            
+            %             data = squeeze(A.avgData(n,:,accelInd(i)));
+            %             eval(['dataE = squeeze(A.allData' num2str(n) '(end,:,accelInd(i)));']);
+            %             eval(['dataS = squeeze(A.allData' num2str(n) '(1,:,accelInd(i)));']);
+            %             zInd = find(A.tvec<0);
+            %             stimStartInd = zInd(end)+1;
+            %             calib = mean(data(zInd));
+            %             calibE = mean(dataE(zInd));
+            %             calibS = mean(dataS(zInd));
+            %             data = data - calib;
+            %             dataE = dataE - calibE;
+            %             dataS = dataS - calibS;
+            %             %data(stimStartInd:end) = detrend(data(stimStartInd:end));
+            %
+            %             data = filter(filterb,filtera,data);
+            %             data = cumtrapz(data);
+            %             data = filter(filterb,filtera,data);
+            %             data = cumtrapz(data);
+            %             ydata = data;
+            %
+            %             dataE = filter(filterb,filtera,dataE);
+            %             dataE = cumtrapz(dataE);
+            %             dataE = filter(filterb,filtera,dataE);
+            %             dataE = cumtrapz(dataE);
+            %             ydataE = dataE;
+            %
+            %             dataS = filter(filterb,filtera,dataS);
+            %             dataS = cumtrapz(dataS);
+            %             dataS = filter(filterb,filtera,dataS);
+            %             dataS = cumtrapz(dataS);
+            %             ydataS = dataS;
+            
+            zInd = find(A.tvec<0);
+            stimStartInd = zInd(end)+1;
+            eval(['allData = squeeze(A.allData' num2str(n) '(:,:,accelInd(i)));'])
+            
+            for j = 1:length(allData(:,1))
+                calib = mean(allData(j,zInd));
+                allData(j,:) = allData(j,:) - calib;
+                allData(j,:) = filter(filterb,filtera,allData(j,:));
+                allData(j,:) = cumtrapz(allData(j,:)); % velocity
+                allData(j,:) = filter(filterb,filtera,allData(j,:));
+                allData(j,:) = cumtrapz(allData(j,:)); % displacement
+                sumData(j) = sum(abs(allData(j,stimStartInd:end)));
+            end
+            
+            
             ydata = mean(allData);
             ydata_std = std(allData);
             ydataE = allData(end,:);
-            ydataE = allData(end,:);
+            ydataS = allData(1,:);
             
             ymax(n) = max(ydata);
             ymin(n) = min(ydata);
-            respAmp(n) = max(abs(ydata(stimStartInd:end)));
+            [respAmp(n),ind] = max(abs(ydata(stimStartInd:end)));
+            respSTD(n) = ydata_std(ind);
+%             respAmp(n) = mean(sumData);
+%             respSTD(n) = std(sumData);
             respAmpE(n) = max(abs(ydataE(stimStartInd:end)));
             respAmpS(n) = max(abs(ydataS(stimStartInd:end)));
             
@@ -155,6 +172,7 @@ if ~isempty(accelInd)
             title(['Input-Output Function - Acceleration: ' accelString{i} ' axis'])
         end
         eval(['A.respAmp' accelString{i} ' = respAmp;']);
+        eval(['A.respSTD' accelString{i} ' = respSTD;']);
         eval(['A.respAmpE' accelString{i} ' = respAmpE;']);
         eval(['A.respAmpS' accelString{i} ' = respAmpS;']);
     end

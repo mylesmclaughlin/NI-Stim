@@ -1,7 +1,7 @@
 function A = NIStim_MakeChirp(dur,f0,f1,t1)
 
 pathname = 'C:\Users\u0043883\Google Drive\Work\MATLAB\NI-Stim\Stimuli\';
-A.fs = 100e3;
+A.fs = 200e3;
 phi = -90;
 method = 'linear';
 t = [1/A.fs:1/A.fs:dur];
