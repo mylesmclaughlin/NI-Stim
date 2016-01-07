@@ -135,7 +135,7 @@ if S.ni.connected == 1
         set(NI.Channels(n),'InputType',S.ni.inputtype{n});
         set(NI.Channels(n),'Range',S.ni.voltrange(n,:));
     end
-     
+    
     % add output channels
     if S.stim.stim == 1
         chOut = addAnalogOutputChannel(NI,S.ni.devname,S.ni.chout, 'Voltage');
@@ -275,7 +275,7 @@ delete(T)
 
 %-------------------------------------------------------------------------
 function NIstartStim
-global NI S RH 
+global NI S RH
 
 % Make stimulus
 S.stim.stim = 1;
@@ -339,7 +339,7 @@ if S.rec.rec == 0
     S.rec.fullfileName = [S.data.dir S.rec.filename '.bin'];
     % check file name and append 1 if it already exists
     S.rec.fullfileName = NImakeFileName(S.rec.fullfileName);
-
+    
     stimOnly = 1;
     NIsaveStimParam(stimOnly);
 end
@@ -360,7 +360,7 @@ NIwriteCurrentStimParam
 
 %-------------------------------------------------------------------------
 function NIstopStim
-global NI S LH RH 
+global NI S LH RH
 
 set(S.stim.startbut,'String','Stopping...','enable','off')
 set(S.rec.startstimbut,'String','Stopping...','enable','off')
@@ -388,9 +388,9 @@ end
 % disp('Out of while loop')
 holdbuffer = S.stim.data;
 
- S.stim.data = zeros(size(S.stim.data));
- bufferDur = S.stim.buffersize/NI.Rate;
- pause(bufferDur*2)
+% S.stim.data = zeros(size(S.stim.data));
+% bufferDur = S.stim.buffersize/NI.Rate;
+% pause(bufferDur*2)
 
 % Disable current source
 if S.current.present == 1
@@ -432,7 +432,7 @@ set(S.stim.updatebut,'enable','off')
 set(S.stim.stimrecbut,'enable','on')
 set(S.stim.stimprocbut,'enable','on')
 set(S.stim.stimrecprocbut,'enable','on')
-    
+
 %-------------------------------------------------------------------------
 function NIqueueStim(event)
 global S NI
@@ -441,6 +441,7 @@ global S NI
 if S.sequence.on == 1
     S.stim.firstqueue = 0;
     S.sequence.thisseq = S.sequence.thisseq+1;
+    disp(S.sequence.thisseq)
     if S.stim.numberreps==Inf % continuously loop through seqIndex
         S.sequence.loopthisseq = mod(S.sequence.thisseq,S.sequence.nseq);
         if S.sequence.loopthisseq == 0
@@ -450,6 +451,7 @@ if S.sequence.on == 1
         S.sequence.loopthisseq = S.sequence.thisseq;
     end
     if S.sequence.loopthisseq>length(S.sequence.seqIndex)
+        disp('Done. Queue zero data')
         S.stim.data = zeros(size(S.sequence.data.stim1));
         S.sequence.thisseq = S.sequence.thisseq-1;
     else
@@ -464,13 +466,14 @@ if S.stim.firstqueue == 1
 else
     queueOutputData(NI,S.stim.data);
 end
+disp('Data has been queued')
 
 % keep track of reps
 NIrepCount
 
 %-------------------------------------------------------------------------
 function NIrepCount
-global S NI RH 
+global S NI RH
 
 % count reps here - more accurate
 if S.stim.continuous == 0
@@ -529,7 +532,7 @@ S.stim.phase1amp = str2num(get(S.stim.phase1ampbut,'string'));
 S.stim.phase2amp = str2num(get(S.stim.phase2ampbut,'string'));
 S.stim.phasegap = str2num(get(S.stim.phasegapbut,'string'));
 
-SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};
+SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq','phasegap'};
 hit = 0;
 for n = 1:length(SequenceFields)
     eval(['param = S.stim.' SequenceFields{n} ';']);
@@ -543,8 +546,9 @@ for n = 1:length(SequenceFields)
         S.sequence.parametervalues = param;
         eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
         S.sequence.seq = [1:S.sequence.nseq];
+        
         if S.stim.numberreps == Inf
-            S.sequence.seqIndex =  S.sequence.seq;    
+            S.sequence.seqIndex =  S.sequence.seq;
         else
             S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
         end
@@ -561,7 +565,6 @@ if hit == 0;
     S.sequence.parametervalues = [];
     S.sequence.data = [];
     S.sequence.seq = [1:S.sequence.nseq];
-    S.sequence.seqIndex =  S.sequence.seq; 
 end
 
 %-------------------------------------------------------------------------
@@ -807,7 +810,7 @@ elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'gaussian')
         end
     end
     samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
-  
+    
     part1 = S.stim.amplitude*(S.stim.phase1amp/100)*gausswinzero(sampperphase1);
     part2 = S.stim.amplitude*(S.stim.phase2amp/100)*gausswinzero(sampperphase2);
 end
@@ -885,7 +888,7 @@ S.rec.rawplotdata = [S.rec.rawplotdata(S.rec.rawplotbuffersize+1:end,:); eventDa
 % if S.accel.accel == 1
 %     S.rec.procplotdata = NIaccelprocess(S.rec.rawplotdata);
 % else
-    S.rec.procplotdata = S.rec.rawplotdata;
+S.rec.procplotdata = S.rec.rawplotdata;
 %end
 
 % plot data
@@ -921,13 +924,13 @@ end
 
 % quick sample
 if S.rec.quickrec
-%     figure;
-%     %plot(S.rec.timevec,S.rec.plotdata/S.amp.gain)
-%     plot([1/S.ni.rate:1/S.ni.rate:S.ni.buffersize/S.ni.rate]*1e3,eventData/S.amp.gain)
-%     xlabel('Time (ms)')
-%     ylabel('Voltage (V)')
+    %     figure;
+    %     %plot(S.rec.timevec,S.rec.plotdata/S.amp.gain)
+    %     plot([1/S.ni.rate:1/S.ni.rate:S.ni.buffersize/S.ni.rate]*1e3,eventData/S.amp.gain)
+    %     xlabel('Time (ms)')
+    %     ylabel('Voltage (V)')
     S.rec.quickrec = 0;
-%    NIquickSave(eventData);
+    %    NIquickSave(eventData);
     assignin('base','data',eventData)
     assignin('base','fs',S.ni.rate)
     disp('Data avaialbe in workspace')
@@ -1292,11 +1295,13 @@ if sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle','ga
     else
         figure(pf)
     end
-    plot([0:length(pulse)-1]/S.ni.rate * 1e6,pulse,'.-')
+    plot([0:length(pulse)]/S.ni.rate * 1e6,[0; pulse],'.-')
     hold on
     xlabel('Time (\muS)')
     xlim([0 2*(S.stim.phase1pulsewidth + S.stim.phase2pulsewidth + S.stim.phasegap)])
     ylim([min(pulse)*1.1 max(pulse)*1.1])
+    set(gca,'tickdir','out')
+    box off
     figure(S.fig.fhdl)
 end
 %--------------------------------------------------------------------------
@@ -1339,7 +1344,7 @@ global S NI
 
 disp('Hold accelerometer still with the x-axis pointing up')
 a = input('Press ENTER when ready');
-D = NIrecord10sec('x_calib'); 
+D = NIrecord10sec('x_calib');
 x_still = D.data(:,S.accel.chinds);
 
 disp('Hold accelerometer still with the y-axis pointing up')
@@ -1374,7 +1379,7 @@ NIStim('startRec')
 pause(10)
 NIStim('stopRec')
 disp('Done')
-D = binread([S.data.dir filename '.bin']);
+D = binread([seqS.data.dir filename '.bin']);
 
 %--------------------------------------------------------------------------
 function data = NIaccelprocess(data)

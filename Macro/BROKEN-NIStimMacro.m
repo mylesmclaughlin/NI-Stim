@@ -58,23 +58,26 @@ for n = 1:length(M)
     while S.sequence.thisseq < length(S.sequence.seqIndex)
         pause(1)
     end
+    pause(M(n).stim.burstrepperiod/1e3 + 2*S.ni.updateperiod) % wait for rep to end and update to happen before stopping
     NIStim('stopStim')
     
+    disp(['Recorded data to ' M(n).macro.localfilename])
+    disp('--------------------------------------------')
+
     % check for pause
     while S.macro.run == 0
         pause(0.5)
         if S.macro.active == 0
-            disp('Marco stopped by user')
             break
         end
     end
     
     % check for stop
     if S.macro.active == 0
-        disp('Marco stopped by user')
         break
     end
 end
+disp('Marco has finished')
 
 %--------------------------------------------------------------------------
 function NISMplaynext
@@ -87,11 +90,6 @@ for i = 1:length(M)
 end
 zind = find(done==0);
 n = zind(1);
-
-if n>1
-    disp(['Recorded data to ' M(n-1).macro.localfilename])
-    disp('--------------------------------------------')
-end
 
 % update NIStim gui
 NISMupdateGUI(M(n));
@@ -109,7 +107,7 @@ disp(['Playing stimulus ' M(n).macro.localfilename])
 
 % marks as done
 M(n).macro.done = 1;
-
+M(n).sequence = S.sequence;
 % update macro data file
 save([S.data.dir M(1).macro.basefilename '.NISmacro'],'M','-mat');
 
@@ -139,6 +137,8 @@ set(S.stim.phase1ampbut,'string',num2str(M.stim.phase1amp));
 set(S.stim.phase2ampbut,'string',num2str(M.stim.phase2amp));
 set(S.stim.phasegapbut,'string',num2str(M.stim.phasegap));
 
+S.stim.randomizesequence = M.stim.randomizesequence;
+
 set(S.rec.filenamebut,'string',M.macro.localfilename);
 set(S.stim.filenamebut,'string',M.macro.localfilename);
 
@@ -159,6 +159,7 @@ if isempty(S.macro.fhdl)
 else
     clf(S.macro.fhdl)
 end
+figure(S.macro.fhdl)
 set(S.macro.fhdl,'DeleteFcn','NIStimMacro(''stop'')')
 set(S.macro.fhdl,'menubar','none','toolbar','none','numbertitle','off')
 set(S.macro.fhdl,'name','NIStimMacro')

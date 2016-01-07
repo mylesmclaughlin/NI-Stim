@@ -76,7 +76,7 @@ A.tvec = sampVec/A.fs;
 if isfield(N.sequence,'seq')
     A.seq = N.sequence.seq; %[1:10];
     A.seqIndex = N.sequence.seqIndex; %repmat(seq,1,4);
-    A.seqIndex =  repmat(A.seq,1,floor(A.nTrig/length(A.seq)));
+    %A.seqIndex =  repmat(A.seq,1,floor(A.nTrig/length(A.seq)));
 else
     A.seq = 1:10;
     A.seqIndex = repmat(A.seq,1,4);

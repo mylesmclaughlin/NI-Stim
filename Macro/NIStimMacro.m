@@ -58,7 +58,7 @@ for n = 1:length(M)
     while S.sequence.thisseq < length(S.sequence.seqIndex)
         pause(1)
     end
-    pause(M(n).stim.burstrepperiod/1e3 + 2*S.ni.updateperiod) % wait for rep to end and update to happen before stopping
+    pause(2*M(n).stim.burstrepperiod/1e3 + 3*S.ni.updateperiod) % wait for rep to end and update to happen before stopping
     NIStim('stopStim')
     
     disp(['Recorded data to ' M(n).macro.localfilename])
