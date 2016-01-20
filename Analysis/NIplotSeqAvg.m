@@ -110,12 +110,14 @@ if ~isempty(accelInd)
             %             ydataS = dataS;
             
             zInd = find(A.tvec<0);
+            %artInd = find(A.tvec<150e-3);
             stimStartInd = zInd(end)+1;
             eval(['allData = squeeze(A.allData' num2str(n) '(:,:,accelInd(i)));'])
             
             for j = 1:length(allData(:,1))
                 calib = mean(allData(j,zInd));
                 allData(j,:) = allData(j,:) - calib;
+                %allData(j,artInd) = 0;
                 allData(j,:) = filter(filterb,filtera,allData(j,:));
                 allData(j,:) = cumtrapz(allData(j,:)); % velocity
                 allData(j,:) = filter(filterb,filtera,allData(j,:));

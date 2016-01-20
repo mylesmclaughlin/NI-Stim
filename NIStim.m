@@ -388,9 +388,9 @@ end
 % disp('Out of while loop')
 holdbuffer = S.stim.data;
 
-% S.stim.data = zeros(size(S.stim.data));
-% bufferDur = S.stim.buffersize/NI.Rate;
-% pause(bufferDur*2)
+ S.stim.data = zeros(size(S.stim.data));
+ bufferDur = S.stim.buffersize/NI.Rate;
+ pause(bufferDur*2)
 
 % Disable current source
 if S.current.present == 1
