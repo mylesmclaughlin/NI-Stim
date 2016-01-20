@@ -53,6 +53,7 @@ for n = 1:length(freqvec); %length(ampmodfreq) %
     M(n).stim.phase2amp = -100;
     M(n).stim.phasegap = 0;
     M(n).stim.sameonallchannels = 1;
+    M(n).stim.randomizesequence = 0;
 end
 
 %% - Run the macro -
