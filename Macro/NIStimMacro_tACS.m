@@ -17,13 +17,13 @@ elseif M(1).macro.record == 1
 end
 
 % Set fixed variables for easy modification
-numberreps = 10;
-ampRange = 2.5;
+numberreps = 1 ;
+ampRange = [1:0.2:3];
 freqvec = [1 2 4 8 16 32];
-burstdur = 2000;
+burstdur = 1000;
 burstrepperiod = 2000;
 ampmoddepth = 0;
-ampmodfreq = 0;
+ampmodfreq = 5;
 waveformindex = 1; % 1 for sin 2 for pulse
 phase1pulsewidth = 200;
 phase2pulsewidth = 200;
@@ -31,7 +31,7 @@ phase2pulsewidth = 200;
 % --Setup stimulation variables in a struct array --
 % Stimulus 1 - Sin 50 Hz
 for n = 1:length(freqvec); %length(ampmodfreq) %
-    M(n).stim.seqname = [num2str(freqvec(n))]; %[num2str(ampmodfreq(n))];
+    M(n).stim.seqname = [num2str(freqvec(n))]; %[num2str(ampmodfreq(n))]; %
     M(n).stim.stim = 0;
     M(n).stim.amplitude = ampRange;
     M(n).stim.frequency = freqvec(n);

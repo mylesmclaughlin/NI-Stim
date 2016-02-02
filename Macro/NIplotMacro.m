@@ -65,6 +65,7 @@ end
 %------------- Line plots ------------
 copo = {'b','r','g','m','k','y','c','b','r','g','m','k','y','c'};
 np = size(P.respAmpY,1);
+nq = size(P.respAmpY,2);
 figure('position',[15         127        1342         420]);
 subplot(1,3,1)
 for n = 1:np
@@ -107,7 +108,7 @@ if sortFreq
     
     figure('position',[15         127        1342         420]);
     subplot(1,3,1)
-    for n = 1:np
+    for n = 1:nq
         %plot(P.ampVec,P.respAmpX(n,:),copo{n})
         errorbar(P.freqVec,P.respAmpX(:,n),P.respSTDX(:,n),copo{n})
         hold on
@@ -118,7 +119,7 @@ if sortFreq
     set(gca,'tickdir','out')
     
     subplot(1,3,2)
-    for n = 1:np
+    for n = 1:nq
         %plot(P.ampVec,P.respAmpY(n,:),copo{n})
         errorbar(P.freqVec,P.respAmpY(:,n),P.respSTDY(:,n),copo{n})
         hold on
@@ -130,7 +131,7 @@ if sortFreq
     
     
     subplot(1,3,3)
-    for n = 1:np
+    for n = 1:nq
         %plot(P.ampVec,P.respAmpZ(n,:),copo{n})
         errorbar(P.freqVec,P.respAmpZ(:,n),P.respSTDZ(:,n),copo{n})
         hold on
@@ -144,6 +145,7 @@ if sortFreq
         leg(kk)=strcat({num2str(P.ampVec(kk))},' ma');
     end
     legend(leg)
+  
 end
 
 

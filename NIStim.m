@@ -630,10 +630,10 @@ if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'sine')
         %         stimDataTrans = (amplitudeTrans.*sin(2*pi*frequencyTrans.*tvec + phaseTrans*2*pi))';
         stimDataTrans = stimData;
     elseif S.stim.ampmoddepth ~= 0
-        AMphase = 0.5;
+        %AMphase = 0.5;
         
         stimData = [];
-        stimData(:,1) = S.stim.amplitude*(1-S.stim.ampmoddepth/100/2)*sin(2*pi*S.stim.frequency*tvec + S.stim.phase*2*pi)';
+        stimData(:,1) = S.stim.amplitude*(1-S.stim.ampmoddepth/100/2)*sin(2*pi*S.stim.frequency                     *tvec + S.stim.phase*2*pi)';
         stimData(:,2) = S.stim.amplitude*(  S.stim.ampmoddepth/100/2)*sin(2*pi*(S.stim.frequency+S.stim.ampmodfreq) *tvec + S.stim.phase*2*pi + S.stim.ampmodphase*2*pi)';
         
         %         amplitudeTrans = linspace(S.stim.current.amplitude,S.stim.amplitude,length(tvec));

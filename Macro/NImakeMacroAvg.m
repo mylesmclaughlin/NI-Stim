@@ -129,14 +129,21 @@ function [allData,fs,sampVec] = loadBinFileMacroData(M,dataPath,seqParam,sampWin
 
 trigChInd = 3;
 trigLevel = 0.7;
-eval(['nSeq = length(M.stim.' seqParam ');']);
+if strcmpi(seqParam,'NoSeq')
+    nSeq = 1;
+else
+    eval(['nSeq = length(M.stim.' seqParam ');']);
+end
 nRep = M.macro.nreps;
-nMacro = 5;
+nMacro = length(M)/M(1).macro.nreps;
 if isfield(M.macro,'allinonebinfile')
     M.macro.allinonebinfile = 0;
 end
 
 if M.macro.allinonebinfile == 0
+    
+    expectedTrig = nSeq * M.stim.numberreps;
+    
     D = binread([dataPath M.macro.localfilename '.bin']);
     sInd = strfind(D.header,'Fs=');
     eInd = strfind(D.header,'Filter=');
@@ -144,15 +151,15 @@ if M.macro.allinonebinfile == 0
     sampVec = [round(sampWin(1)/1e3*fs):round(sampWin(2)/1e3*fs)];
     trigInd = find(D.data(1:end-1,trigChInd)<trigLevel & D.data(2:end,trigChInd)>trigLevel);
     nTrig = length(trigInd);
-    if nTrig<nSeq
+    if nTrig<expectedTrig
         disp('Could not find all triggers')
-    elseif nTrig>nSeq
+    elseif nTrig>expectedTrig
         disp('Found too many triggers')
     end
     
     j=0;
     for n = 1:nTrig
-        if trigInd(n)+sampVec(1)>0 & trigInd(n)+sampVec(end)<length(D.data)
+        if trigInd(n)+sampVec(1)>0 & trigInd(n)+sampVec(end)<=length(D.data)
             j = j+1;
             if isfield(M,'sequence')
                 allData(M.sequence.seqIndex(j),:,:) = D.data(trigInd(n)+sampVec,:);
@@ -164,6 +171,7 @@ if M.macro.allinonebinfile == 0
             return
         end
     end
+    
 else
     D = binread([dataPath M.macro.basefilename '.bin']);
     sInd = strfind(D.header,'Fs=');
