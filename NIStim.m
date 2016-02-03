@@ -135,7 +135,7 @@ if S.ni.connected == 1
         set(NI.Channels(n),'InputType',S.ni.inputtype{n});
         set(NI.Channels(n),'Range',S.ni.voltrange(n,:));
     end
-     
+    
     % add output channels
     if S.stim.stim == 1
         chOut = addAnalogOutputChannel(NI,S.ni.devname,S.ni.chout, 'Voltage');
@@ -209,6 +209,7 @@ D.amp = S.amp;
 D.current = S.current;
 D.data = S.data;
 D.stim = S.stim;
+D.basestim = S.stim;
 D.accel = S.accel;
 sequence = S.sequence;
 sequence.data = [];
@@ -275,7 +276,7 @@ delete(T)
 
 %-------------------------------------------------------------------------
 function NIstartStim
-global NI S RH 
+global NI S RH
 
 % Make stimulus
 S.stim.stim = 1;
@@ -339,7 +340,7 @@ if S.rec.rec == 0
     S.rec.fullfileName = [S.data.dir S.rec.filename '.bin'];
     % check file name and append 1 if it already exists
     S.rec.fullfileName = NImakeFileName(S.rec.fullfileName);
-
+    
     stimOnly = 1;
     NIsaveStimParam(stimOnly);
 end
@@ -360,7 +361,7 @@ NIwriteCurrentStimParam
 
 %-------------------------------------------------------------------------
 function NIstopStim
-global NI S LH RH 
+global NI S LH RH
 
 set(S.stim.startbut,'String','Stopping...','enable','off')
 set(S.rec.startstimbut,'String','Stopping...','enable','off')
@@ -388,9 +389,10 @@ end
 % disp('Out of while loop')
 holdbuffer = S.stim.data;
 
- S.stim.data = zeros(size(S.stim.data));
- bufferDur = S.stim.buffersize/NI.Rate;
- pause(bufferDur*2)
+S.stim.data = zeros(size(S.stim.data));
+bufferDur = S.stim.buffersize/NI.Rate;
+queueOutputData(NI,zeros(size(S.stim.data))); % just added 02/02/2016 - TEST
+pause(bufferDur*2)
 
 % Disable current source
 if S.current.present == 1
@@ -432,7 +434,7 @@ set(S.stim.updatebut,'enable','off')
 set(S.stim.stimrecbut,'enable','on')
 set(S.stim.stimprocbut,'enable','on')
 set(S.stim.stimrecprocbut,'enable','on')
-    
+
 %-------------------------------------------------------------------------
 function NIqueueStim(event)
 global S NI
@@ -470,7 +472,7 @@ NIrepCount
 
 %-------------------------------------------------------------------------
 function NIrepCount
-global S NI RH 
+global S NI RH
 
 % count reps here - more accurate
 if S.stim.continuous == 0
@@ -544,7 +546,7 @@ for n = 1:length(SequenceFields)
         eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
         S.sequence.seq = [1:S.sequence.nseq];
         if S.stim.numberreps == Inf
-            S.sequence.seqIndex =  S.sequence.seq;    
+            S.sequence.seqIndex =  S.sequence.seq;
         else
             S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
         end
@@ -561,7 +563,7 @@ if hit == 0;
     S.sequence.parametervalues = [];
     S.sequence.data = [];
     S.sequence.seq = [1:S.sequence.nseq];
-    S.sequence.seqIndex =  S.sequence.seq; 
+    S.sequence.seqIndex =  S.sequence.seq;
 end
 
 %-------------------------------------------------------------------------
@@ -613,9 +615,17 @@ end
 if S.stim.continuous == 1
     tvec = [1/NI.Rate:1/NI.Rate:S.stim.sampperperiod/S.ni.rate];
     zvec = [];
+    zvec_delay = [];
 elseif S.stim.continuous == 0
     sampperburst = round(NI.Rate*(S.stim.burstdur/1000));
     zerosamps = S.stim.sampperperiod - sampperburst;
+    if S.stim.burstdelay~= 0
+        delaysamps = round(NI.Rate*(S.stim.burstdelay/1000));
+        zerosamps = zerosamps - delaysamps;
+        zvec_delay = zeros(delaysamps,1);
+    else
+        zvec_delay = [];
+    end
     zvec = zeros(zerosamps,1);
     tvec = [1/NI.Rate:1/NI.Rate:sampperburst/S.ni.rate];
 end
@@ -647,11 +657,17 @@ if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'sine')
         if ~isempty(zvec)
             zvec(:,2) = zvec(:,1);
         end
+        if ~isempty(zvec_delay)
+            zvec_delay(:,2) = zvec_delay(:,1);
+        end
         if S.stim.sameonallchannels == 1 %send both freqs on 1 channel
             stimData = sum(stimData')';
             stimDataTrans = sum(stimDataTrans')';
             if ~isempty(zvec)
                 zvec = sum(zvec')';
+            end
+            if ~isempty(zvec_delay)
+                zvec_delay = sum(zvec_delay')';
             end
         end
     end
@@ -689,8 +705,17 @@ if S.stim.ramp == 1
     stimDataTrans = amplitudeTrans.*stimDataTrans;
 end
 
-stimData = [stimData; zvec];
-stimDataTrans = [stimDataTrans; zvec];
+if S.basestim.stim == 1;
+    % add base stimulus
+    [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay);
+else
+    % or add zero buffers
+    stimData = [zvec_delay; stimData; zvec];
+    stimDataTrans = [zvec_delay; stimDataTrans; zvec];
+    
+end
+
+
 
 % check charge balance
 cb = sum(stimData(:));
@@ -701,6 +726,7 @@ cb = sum(stimDataTrans(:));
 if cb > 0.5
     disp(['WARNING: Stimulus is not charge balanced - ' num2str(cb) ' samples or ' num2str((cb*1/NI.Rate)*1000) 'mA offset' ])
 end
+
 
 S.stim.data = [];
 S.stim.transitiondata = [];
@@ -732,6 +758,42 @@ end
 S.stim.buffersize = length(S.stim.data);
 S.stim.repsplayed = 0;
 set(S.stim.repsplayedbut,'String',['rep ' num2str(S.stim.repsplayed)]);
+
+%-------------------------------------------------------------------------
+function [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay);
+global S NI
+
+
+sampperrep = round(NI.Rate*(S.stim.burstrepperiod/1000));
+tvec = [1/NI.Rate:1/NI.Rate:sampperrep/S.ni.rate];
+if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
+    if S.basestim.ampmoddepth == 0
+        baseData = S.basestim.amplitude*sin(2*pi*S.basestim.frequency*tvec + S.basestim.phase*2*pi)';
+        baseDataTrans = baseData;
+    elseif S.basestim.ampmoddepth ~= 0
+        baseData = [];
+        baseData(:,1) = S.basestim.amplitude*(1-S.basestim.ampmoddepth/100/2)*sin(2*pi*S.basestim.frequency                         *tvec + S.basestim.phase*2*pi)';
+        baseData(:,2) = S.basestim.amplitude*(  S.basestim.ampmoddepth/100/2)*sin(2*pi*(S.basestim.frequency+S.basestim.ampmodfreq) *tvec + S.basestim.phase*2*pi + S.basestim.ampmodphase*2*pi)';
+        baseDataTrans = baseData;
+        if S.stim.sameonallchannels == 1 %send both freqs on 1 channel
+            baseData = sum(baseData')';
+            baseDataTrans = sum(baseDataTrans')';
+        end
+    end
+end
+
+S.basestim.data = baseData;
+S.basestim.transitiondata = baseDataTrans;
+
+stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
+
+baseData(stimInd) = baseData(stimInd(1));
+baseData(stimInd) = baseData(stimInd) + stimData;
+baseDataTrans(stimInd) = baseDataTrans(stimInd(1));
+baseDataTrans(stimInd) = baseDataTrans(stimInd) + stimDataTrans;
+
+stimData = baseData;
+stimDataTrans = baseDataTrans;
 
 %-------------------------------------------------------------------------
 function NImakeSeqStim
@@ -807,7 +869,7 @@ elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'gaussian')
         end
     end
     samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
-  
+    
     part1 = S.stim.amplitude*(S.stim.phase1amp/100)*gausswinzero(sampperphase1);
     part2 = S.stim.amplitude*(S.stim.phase2amp/100)*gausswinzero(sampperphase2);
 end
@@ -885,7 +947,7 @@ S.rec.rawplotdata = [S.rec.rawplotdata(S.rec.rawplotbuffersize+1:end,:); eventDa
 % if S.accel.accel == 1
 %     S.rec.procplotdata = NIaccelprocess(S.rec.rawplotdata);
 % else
-    S.rec.procplotdata = S.rec.rawplotdata;
+S.rec.procplotdata = S.rec.rawplotdata;
 %end
 
 % plot data
@@ -921,13 +983,13 @@ end
 
 % quick sample
 if S.rec.quickrec
-%     figure;
-%     %plot(S.rec.timevec,S.rec.plotdata/S.amp.gain)
-%     plot([1/S.ni.rate:1/S.ni.rate:S.ni.buffersize/S.ni.rate]*1e3,eventData/S.amp.gain)
-%     xlabel('Time (ms)')
-%     ylabel('Voltage (V)')
+    %     figure;
+    %     %plot(S.rec.timevec,S.rec.plotdata/S.amp.gain)
+    %     plot([1/S.ni.rate:1/S.ni.rate:S.ni.buffersize/S.ni.rate]*1e3,eventData/S.amp.gain)
+    %     xlabel('Time (ms)')
+    %     ylabel('Voltage (V)')
     S.rec.quickrec = 0;
-%    NIquickSave(eventData);
+    %    NIquickSave(eventData);
     assignin('base','data',eventData)
     assignin('base','fs',S.ni.rate)
     disp('Data avaialbe in workspace')
@@ -1339,7 +1401,7 @@ global S NI
 
 disp('Hold accelerometer still with the x-axis pointing up')
 a = input('Press ENTER when ready');
-D = NIrecord10sec('x_calib'); 
+D = NIrecord10sec('x_calib');
 x_still = D.data(:,S.accel.chinds);
 
 disp('Hold accelerometer still with the y-axis pointing up')

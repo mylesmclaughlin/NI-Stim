@@ -137,6 +137,26 @@ set(S.stim.phase1ampbut,'string',num2str(M.stim.phase1amp));
 set(S.stim.phase2ampbut,'string',num2str(M.stim.phase2amp));
 set(S.stim.phasegapbut,'string',num2str(M.stim.phasegap));
 
+if isfield(M,'basestim')
+      % delay normal stimulus
+        S.stim.burstdelay = M.stim.burstdelay;
+        % settings for base stimulus
+        S.basestim.stim = M.basestim.stim;
+        S.basestim.amplitude = M.basestim.amplitude;
+        S.basestim.frequency = M.basestim.frequency;
+        S.basestim.phase = M.basestim.phase;
+        S.basestim.ampmoddepth = M.basestim.ampmoddepth;
+        S.basestim.ampmodfreq = M.basestim.ampmodfreq;
+        S.basestim.ampmodphase = M.basestim.ampmodphase;
+        S.basestim.waveformindex = M.basestim.waveformindex;
+        S.basestim.phase1pulsewidth = M.basestim.phase1pulsewidth;
+        S.basestim.phase2pulsewidth = M.basestim.phase2pulsewidth;
+        S.basestim.phase1amp = M.basestim.phase1amp;
+        S.basestim.phase2amp = M.basestim.phase2amp;
+        S.basestim.phasegap = M.basestim.phasegap;
+        S.basestim.waveformindex = M.basestim.waveformindex;
+end
+
 set(S.rec.filenamebut,'string',M.macro.localfilename);
 set(S.stim.filenamebut,'string',M.macro.localfilename);
 
