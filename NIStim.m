@@ -766,6 +766,7 @@ global S NI
 
 sampperrep = round(NI.Rate*(S.stim.burstrepperiod/1000));
 tvec = [1/NI.Rate:1/NI.Rate:sampperrep/S.ni.rate];
+if S.basestim.dc == 0
 if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
     if S.basestim.ampmoddepth == 0
         baseData = S.basestim.amplitude*sin(2*pi*S.basestim.frequency*tvec + S.basestim.phase*2*pi)';
@@ -781,16 +782,28 @@ if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
         end
     end
 end
+elseif S.basestim.dc == 1
+    % test DC stim
+    baseData = S.basestim.amplitude*ones(size(tvec'));
+    baseDataTrans = S.basestim.amplitude*ones(size(tvec'));
+end
+
+
 
 S.basestim.data = baseData;
 S.basestim.transitiondata = baseDataTrans;
 
 stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
 
-baseData(stimInd) = baseData(stimInd(1));
-baseData(stimInd) = baseData(stimInd) + stimData;
-baseDataTrans(stimInd) = baseDataTrans(stimInd(1));
-baseDataTrans(stimInd) = baseDataTrans(stimInd) + stimDataTrans;
+% make stim float on top of base data
+% baseData(stimInd) = baseData(stimInd(1));
+% baseData(stimInd) = baseData(stimInd) + stimData;
+% baseDataTrans(stimInd) = baseDataTrans(stimInd(1));
+% baseDataTrans(stimInd) = baseDataTrans(stimInd) + stimDataTrans;
+
+% make stim zero centered
+baseData(stimInd) = stimData;
+baseDataTrans(stimInd) = stimDataTrans;
 
 stimData = baseData;
 stimDataTrans = baseDataTrans;

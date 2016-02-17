@@ -18,8 +18,8 @@ end
 
 % Set fixed variables for easy modification
 numberreps = 1 ;
-ampRange = [1:0.2:3];
-freqvec = [1 2 4 8 16 32];
+ampRange = [1:0.1:2];
+freqvec = [0.5 1 2 4];
 burstdur = 1000;
 burstrepperiod = 2000;
 ampmoddepth = 0;

@@ -133,7 +133,9 @@ if ~isempty(accelInd)
             ymax(n) = max(ydata);
             ymin(n) = min(ydata);
             [respAmp(n),ind] = max(abs(ydata(stimStartInd:end)));
-            respSTD(n) = ydata_std(ind);
+            respSTD(n) = ydata_std(stimStartInd+ind);
+            respAll(n,:) = max(abs(allData(:,stimStartInd:end))');
+           
 %             respAmp(n) = mean(sumData);
 %             respSTD(n) = std(sumData);
             respAmpE(n) = max(abs(ydataE(stimStartInd:end)));
@@ -173,6 +175,7 @@ if ~isempty(accelInd)
             title(['Input-Output Function - Acceleration: ' accelString{i} ' axis'])
         end
         eval(['A.respAmp' accelString{i} ' = respAmp;']);
+        eval(['A.respAll' accelString{i} ' = respAll;']);
         eval(['A.respSTD' accelString{i} ' = respSTD;']);
         eval(['A.respAmpE' accelString{i} ' = respAmpE;']);
         eval(['A.respAmpS' accelString{i} ' = respAmpS;']);

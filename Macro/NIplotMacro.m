@@ -24,7 +24,9 @@ for n = 1:length(Ain)
         P.respSTDX(n,:) = A.respSTDX;
         P.respSTDY(n,:) = A.respSTDY;
         P.respSTDZ(n,:) = A.respSTDZ;
-   
+        P.respAllX(n,:,:) = A.respAllX;
+        P.respAllY(n,:,:) = A.respAllY;
+        P.respAllZ(n,:,:) = A.respAllZ;
     elseif strcmp(A.seqparametername,'phasegap')
         P.freqVec(n) = A.frequency;
         P.ampVec(n) = A.amplitude;
@@ -34,7 +36,9 @@ for n = 1:length(Ain)
         P.respSTDX(n,:) = A.respSTDX;
         P.respSTDY(n,:) = A.respSTDY;
         P.respSTDZ(n,:) = A.respSTDZ;
-   
+        P.respAllX(n,:,:) = A.respAllX;
+        P.respAllY(n,:,:) = A.respAllY;
+        P.respAllZ(n,:,:) = A.respAllZ;
     elseif strcmp(A.seqparametername,'frequency')
         P.ampVec(n) = A.amplitude;
         P.respAmpX(:,n) = A.respAmpX;
@@ -43,8 +47,30 @@ for n = 1:length(Ain)
         P.respSTDX(:,n) = A.respSTDX;
         P.respSTDY(:,n) = A.respSTDY;
         P.respSTDZ(:,n) = A.respSTDZ;
+        P.respAllX(n,:,:) = A.respAllX;
+        P.respAllY(n,:,:) = A.respAllY;
+        P.respAllZ(n,:,:) = A.respAllZ;
     end
 end
+
+selectAxis(1) = max(P.respAmpX(:));
+selectAxis(2) = max(P.respAmpY(:));
+selectAxis(3) = max(P.respAmpZ(:));
+[dum,ind] = max(selectAxis);
+if ind == 1
+    P.respAmp = P.respAmpX;
+    P.respAll = P.respAllX;
+    P.respSTD = P.respSTDX;
+elseif ind == 2
+    P.respAmp = P.respAmpY;
+    P.respAll = P.respAllY;
+    P.respSTD = P.respSTDY;
+elseif ind == 3
+    P.respAmp = P.respAmpZ;
+    P.respAll = P.respAllZ;
+    P.respSTD = P.respSTDZ;
+end
+
 
 if strcmp(A.seqparametername,'frequency')
     P.freqVec = A.frequency;
@@ -103,49 +129,49 @@ set(gca,'tickdir','out')
 
 legend({Ain.macro})
 
-if sortFreq
-    % Plotting frequency as function of amplitude
-    
-    figure('position',[15         127        1342         420]);
-    subplot(1,3,1)
-    for n = 1:nq
-        %plot(P.ampVec,P.respAmpX(n,:),copo{n})
-        errorbar(P.freqVec,P.respAmpX(:,n),P.respSTDX(:,n),copo{n})
-        hold on
-    end
-    xlabel('Freq (Hz)')
-    ylabel('Displacement X')
-    box off
-    set(gca,'tickdir','out')
-    
-    subplot(1,3,2)
-    for n = 1:nq
-        %plot(P.ampVec,P.respAmpY(n,:),copo{n})
-        errorbar(P.freqVec,P.respAmpY(:,n),P.respSTDY(:,n),copo{n})
-        hold on
-    end
-    xlabel('Freq (Hz)')
-    ylabel('Displacement Y')
-    box off
-    set(gca,'tickdir','out')
-    
-    
-    subplot(1,3,3)
-    for n = 1:nq
-        %plot(P.ampVec,P.respAmpZ(n,:),copo{n})
-        errorbar(P.freqVec,P.respAmpZ(:,n),P.respSTDZ(:,n),copo{n})
-        hold on
-    end
-    xlabel('Freq (Hz)')
-    ylabel('Displacement Z')
-    box off
-    set(gca,'tickdir','out')
-    
-    for kk=1:length(P.ampVec)
-        leg(kk)=strcat({num2str(P.ampVec(kk))},' ma');
-    end
-    legend(leg)
-  
-end
-
-
+% if sortFreq
+%     % Plotting frequency as function of amplitude
+%
+%     figure('position',[15         127        1342         420]);
+%     subplot(1,3,1)
+%     for n = 1:nq
+%         %plot(P.ampVec,P.respAmpX(n,:),copo{n})
+%         errorbar(P.freqVec,P.respAmpX(:,n),P.respSTDX(:,n),copo{n})
+%         hold on
+%     end
+%     xlabel('Freq (Hz)')
+%     ylabel('Displacement X')
+%     box off
+%     set(gca,'tickdir','out')
+%
+%     subplot(1,3,2)
+%     for n = 1:nq
+%         %plot(P.ampVec,P.respAmpY(n,:),copo{n})
+%         errorbar(P.freqVec,P.respAmpY(:,n),P.respSTDY(:,n),copo{n})
+%         hold on
+%     end
+%     xlabel('Freq (Hz)')
+%     ylabel('Displacement Y')
+%     box off
+%     set(gca,'tickdir','out')
+%
+%
+%     subplot(1,3,3)
+%     for n = 1:nq
+%         %plot(P.ampVec,P.respAmpZ(n,:),copo{n})
+%         errorbar(P.freqVec,P.respAmpZ(:,n),P.respSTDZ(:,n),copo{n})
+%         hold on
+%     end
+%     xlabel('Freq (Hz)')
+%     ylabel('Displacement Z')
+%     box off
+%     set(gca,'tickdir','out')
+%
+%     for kk=1:length(P.ampVec)
+%         leg(kk)=strcat({num2str(P.ampVec(kk))},' ma');
+%     end
+%     legend(leg)
+%
+% end
+%
+%
