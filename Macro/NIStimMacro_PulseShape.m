@@ -17,7 +17,7 @@ elseif M(1).macro.record == 1
 end
 
 % Set fixed variables for easy modification
-ampRange = 0.3:0.1:1.2;
+ampRange = 0.1:0.1:1;
 frequency = 300;
 burstdur = 100;
 burstrepperiod = 2000;

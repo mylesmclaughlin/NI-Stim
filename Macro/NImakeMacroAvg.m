@@ -106,6 +106,8 @@ for m = 1:D.nMacro
     end
 end
 
+
+% experiment specific sorting of results
 sortList = {'BP','IPG','PM','TRI','GAUS'};
 sum(strcmpi(A(1).macro,sortList))
 if sum(strcmpi(A(1).macro,sortList))
@@ -124,6 +126,26 @@ if strfind(A(1).macro,'IPG');
     A = A(sind);
 end
 
+if isempty(strfind(A(1).macro,'singlefreq')) | isempty(strfind(A(1).macro,'baseline'))
+    for n = 1:length(A)
+        if strfind(A(n).macro,'singlefreq')
+            phase(n) = str2num(A(n).macro(11:end));
+            if phase(n)>1 & phase(n)<10
+                phase(n) = phase(n)/10;
+            elseif phase(n)>10 & phase(n)<100
+                phase(n) = phase(n)/100;
+            elseif phase(n)>100 & phase(n)<1000
+                phase(n) = phase(n)/1000;
+            end
+        elseif strfind(A(n).macro,'baseline')
+            phase(n) = -1;
+        end
+        A(n).phase = phase(n);
+    end
+    [s,sind] = sort(phase);
+    A = A(sind);
+end
+
 %--------------------------------------------------------------------------
 function [allData,fs,sampVec] = loadBinFileMacroData(M,dataPath,seqParam,sampWin,N)
 
@@ -136,7 +158,7 @@ else
 end
 nRep = M.macro.nreps;
 nMacro = length(M)/M(1).macro.nreps;
-if isfield(M.macro,'allinonebinfile')
+if ~isfield(M.macro,'allinonebinfile')
     M.macro.allinonebinfile = 0;
 end
 
@@ -180,6 +202,7 @@ else
     sampVec = [round(sampWin(1)/1e3*fs):round(sampWin(2)/1e3*fs)];
     trigInd = find(D.data(1:end-1,trigChInd)<trigLevel & D.data(2:end,trigChInd)>trigLevel);
     nTrig = length(trigInd);
+    nMacro = 5;
     expectedTrig = nSeq * nRep * nMacro;
     if nTrig<expectedTrig
         disp('Could not find all triggers')

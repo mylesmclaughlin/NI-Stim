@@ -4,7 +4,7 @@ function M = NIStimMacro_tACS_SubthresAM
 %% - Setup the marco struture -
 
 % Setup the macro variables
-M(1).macro.basefilename = 'RatTACS-'; % set base file name
+M(1).macro.basefilename = 'RatInvasiveSubThres-'; % set base file name
 M(1).macro.basefilename = [M(1).macro.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
 M(1).macro.nreps = 5; % - number of time to repeated each stimulus contained in the macro structure
 M(1).macro.randomize = 1;  % randomize the order of stimului presentation
@@ -18,23 +18,23 @@ end
 
 % Set fixed variables for easy modification
 numberreps = 1 ;
-ampRange = [1.2:0.2:3];
+ampRange = [1.4:0.06:2];
 freq = 300;
-burstdur = 80;
+burstdur = 100;
 burstrepperiod = 2000;
-waveformindex = 1;
-phase1pulsewidth = 300;
-phase2pulsewidth = 300;
+waveformindex = 2;
+phase1pulsewidth = 100;
+phase2pulsewidth = 100;
 
-subthresAmp = 1.5;
-subthresFreq = 2;
+subthresAmp = 0.5;
+subthresFreq = 4;
 subthresCar = freq;
-subthresAmpModDepth = 100;
+subthresAmpModDepth = 0;
 
 %% --Setup stimulation variables in a struct array --
 
 % set supra threshold same for all conditions
-for n = 1:6
+for n = 1:8
     M(n).stim.stim = 0;
     M(n).stim.amplitude = ampRange;
     M(n).stim.frequency = freq;
@@ -87,8 +87,11 @@ M(n).basestim.waveformindex = 1;
 % Single Frequency subthreshold stimulus
 n=n+1;
 
-delay = [0 2/8 3/8 4/8 5/8 6/8];
-for n = 2:6
+%delay = [0 2/8 3/8 4/8 5/8 6/8];
+%delay = [0 0.2500    0.3750    0.5000    0.6250    0.7500    0.8750    1.0000];
+delay = [0 0:0.125:1.0000]
+
+for n = 2:length(delay)
     M(n).stim.seqname = ['singlefreq' num2str(delay(n))]; %
     
     % delay normal stimulus
