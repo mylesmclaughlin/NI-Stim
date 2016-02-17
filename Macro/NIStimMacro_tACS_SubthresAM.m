@@ -18,7 +18,7 @@ end
 
 % Set fixed variables for easy modification
 numberreps = 1 ;
-ampRange = [1:0.2:3];
+ampRange = [1.2:0.2:3];
 freq = 300;
 burstdur = 80;
 burstrepperiod = 2000;
@@ -26,7 +26,7 @@ waveformindex = 1;
 phase1pulsewidth = 300;
 phase2pulsewidth = 300;
 
-subthresAmp = 0.5;
+subthresAmp = 1.5;
 subthresFreq = 2;
 subthresCar = freq;
 subthresAmpModDepth = 100;
@@ -34,7 +34,7 @@ subthresAmpModDepth = 100;
 %% --Setup stimulation variables in a struct array --
 
 % set supra threshold same for all conditions
-for n = 1:3
+for n = 1:6
     M(n).stim.stim = 0;
     M(n).stim.amplitude = ampRange;
     M(n).stim.frequency = freq;
@@ -86,48 +86,51 @@ M(n).basestim.waveformindex = 1;
 
 % Single Frequency subthreshold stimulus
 n=n+1;
-M(n).stim.seqname = 'singlefreq'; %
 
-% delay normal stimulus
-M(n).stim.burstdelay = 1000*(1/subthresFreq)/4;
-% settings for base stimulus
-M(n).basestim.stim = 1;
-M(n).basestim.amplitude = subthresAmp;
-M(n).basestim.frequency = subthresFreq;
-M(n).basestim.phase = 0;
-M(n).basestim.ampmoddepth = 0;
-M(n).basestim.ampmodfreq = 5;
-M(n).basestim.ampmodphase = 0.5;
-M(n).basestim.waveformindex = 1;
-M(n).basestim.phase1pulsewidth = 50;
-M(n).basestim.phase2pulsewidth = 50;
-M(n).basestim.phase1amp = 100;
-M(n).basestim.phase2amp = -100;
-M(n).basestim.phasegap = 0;
-M(n).basestim.waveformindex = 1;
+delay = [0 2/8 3/8 4/8 5/8 6/8];
+for n = 2:6
+    M(n).stim.seqname = ['singlefreq' num2str(delay(n))]; %
+    
+    % delay normal stimulus
+    M(n).stim.burstdelay = 1000*(1/subthresFreq)*delay(n) %1000*3*(1/subthresFreq)/4;
+    % settings for base stimulus
+    M(n).basestim.stim = 1;
+    M(n).basestim.amplitude = subthresAmp;
+    M(n).basestim.frequency = subthresFreq;
+    M(n).basestim.phase = 0;
+    M(n).basestim.ampmoddepth = 0;
+    M(n).basestim.ampmodfreq = 5;
+    M(n).basestim.ampmodphase = 0.5;
+    M(n).basestim.waveformindex = 1;
+    M(n).basestim.phase1pulsewidth = 50;
+    M(n).basestim.phase2pulsewidth = 50;
+    M(n).basestim.phase1amp = 100;
+    M(n).basestim.phase2amp = -100;
+    M(n).basestim.phasegap = 0;
+    M(n).basestim.waveformindex = 1;
+end
 
-
-% Amp Mod subthreshold stimulus
-n=n+1;
-M(n).stim.seqname = 'ampmod'; %
-
-% delay normal stimulus
-M(n).stim.burstdelay = 1000*(1/subthresFreq)/4 - 1000*(1/subthresCar)/4;% delay normal stimulus;
-% settings for base stimulus
-M(n).basestim.stim = 1;
-M(n).basestim.amplitude = subthresAmp;
-M(n).basestim.frequency = subthresCar;
-M(n).basestim.phase = 0;
-M(n).basestim.ampmoddepth = subthresAmpModDepth;
-M(n).basestim.ampmodfreq = subthresFreq*2;
-M(n).basestim.ampmodphase = 0.5;
-M(n).basestim.waveformindex = 1;
-M(n).basestim.phase1pulsewidth = 50;
-M(n).basestim.phase2pulsewidth = 50;
-M(n).basestim.phase1amp = 100;
-M(n).basestim.phase2amp = -100;
-M(n).basestim.phasegap = 0;
-M(n).basestim.waveformindex = 1;
+% % Amp Mod subthreshold stimulus
+% n=n+1;
+% M(n).stim.seqname = 'ampmod'; %
+% 
+% % delay normal stimulus
+% M(n).stim.burstdelay = 1000*3*(1/subthresFreq)/4 - 1000*(1/subthresCar)/4;% delay normal stimulus;
+% % settings for base stimulus
+% M(n).basestim.stim = 1;
+% M(n).basestim.amplitude = subthresAmp;
+% M(n).basestim.frequency = subthresCar;
+% M(n).basestim.phase = 0;
+% M(n).basestim.ampmoddepth = subthresAmpModDepth;
+% M(n).basestim.ampmodfreq = subthresFreq*2;
+% M(n).basestim.ampmodphase = 0.5;
+% M(n).basestim.waveformindex = 1;
+% M(n).basestim.phase1pulsewidth = 50;
+% M(n).basestim.phase2pulsewidth = 50;
+% M(n).basestim.phase1amp = 100;
+% M(n).basestim.phase2amp = -100;
+% M(n).basestim.phasegap = 0;
+% M(n).basestim.waveformindex = 1;
 
 
 

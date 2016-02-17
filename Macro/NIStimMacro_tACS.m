@@ -18,9 +18,9 @@ end
 
 % Set fixed variables for easy modification
 numberreps = 1 ;
-ampRange = [1:0.2:3];
-freqvec = [1 2 4 8 16 32];
-burstdur = 1000;
+ampRange = [2:0.2:3.8];
+freqvec = [50 100 200 300 400 800 1600]; %[1 2 4 8 16 32];
+burstdur = 80;
 burstrepperiod = 2000;
 ampmoddepth = 0;
 ampmodfreq = 5;
