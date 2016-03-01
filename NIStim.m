@@ -400,9 +400,9 @@ if S.current.present == 1
 end
 
 % Stop recording
-if S.rec.rec == 1;
-    NIstopRec
-end
+% if S.rec.rec == 1;
+%     NIstopRec
+% end
 
 %disp('1')
 % Delete channels

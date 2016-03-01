@@ -1,9 +1,10 @@
-function P = NIplotMacro(Ain);
+function P = NIplotMacro(Ain,phaseplot);
 
 if nargin<2
-    sortFreq = 1;
+    phaseplot = 0;
 end
 
+sortFreq = 0;
 if sortFreq
     for n = 1:length(Ain)
         freq(n) = Ain(n).frequency;
@@ -128,6 +129,41 @@ box off
 set(gca,'tickdir','out')
 
 legend({Ain.macro})
+
+
+if phaseplot
+    
+    P.phase = [Ain.phase];
+    P.subthresholdfrequency = 2;
+    copo = {'b','r','g','m','k','y'};
+    figure('position',[15         127        1342         420])
+    np = length(P.respAmpX(1,:));
+    subplot(1,3,1)
+    for i = 1:np
+        errorbar(P.phase,P.respAmpX(:,i),P.respSTDX(:,i),[copo{i} '.-'])
+        hold on
+    end
+    xlabel('Phase')
+    title(['X-axis' num2str(P.subthresholdfrequency) ' Hz subthreshold stim'])
+    
+    subplot(1,3,2)
+    for i = 1:np
+        errorbar(P.phase,P.respAmpY(:,i),P.respSTDY(:,i),[copo{i} '.-'])
+        hold on
+    end
+    xlabel('Phase')
+    title(['Y-axis' num2str(P.subthresholdfrequency) ' Hz subthreshold stim'])
+    
+    subplot(1,3,3)
+    for i = 1:np
+        errorbar(P.phase,P.respAmpY(:,i),P.respSTDY(:,i),[copo{i} '.-'])
+        hold on
+    end
+    xlabel('Phase')
+    title(['Z-axis' num2str(P.subthresholdfrequency) ' Hz subthreshold stim'])
+    
+end
+
 
 % if sortFreq
 %     % Plotting frequency as function of amplitude

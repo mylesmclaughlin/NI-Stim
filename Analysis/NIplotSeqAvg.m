@@ -133,7 +133,7 @@ if ~isempty(accelInd)
             ymax(n) = max(ydata);
             ymin(n) = min(ydata);
             [respAmp(n),ind] = max(abs(ydata(stimStartInd:end)));
-            respSTD(n) = ydata_std(stimStartInd+ind);
+            respSTD(n) = ydata_std(ind);
             respAll(n,:) = max(abs(allData(:,stimStartInd:end))');
            
 %             respAmp(n) = mean(sumData);
