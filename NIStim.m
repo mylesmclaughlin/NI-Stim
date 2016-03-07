@@ -542,6 +542,7 @@ for n = 1:length(SequenceFields)
         S.sequence.loopthisseq = 1;
         S.sequence.nseq = fieldL;
         S.sequence.parametername = SequenceFields{n};
+        S.sequence.basestimseq = 0;
         S.sequence.parametervalues = param;
         eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
         S.sequence.seq = [1:S.sequence.nseq];
@@ -554,12 +555,38 @@ for n = 1:length(SequenceFields)
     end
 end
 
+if hit == 0 % look for sequence in basestimulus
+    BaseSequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};
+    for n = 1:length(SequenceFields)
+        eval(['param = S.basestim.' SequenceFields{n} ';']);
+        fieldL = length(param);
+        if fieldL>1
+            S.sequence.on = 1;
+            S.sequence.thisseq = 0;
+            S.sequence.loopthisseq = 1;
+            S.sequence.nseq = fieldL;
+            S.sequence.parametername = SequenceFields{n};
+            S.sequence.basestimseq = 1;
+            S.sequence.parametervalues = param;
+            eval(['S.basestim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
+            S.sequence.seq = [1:S.sequence.nseq];
+            if S.stim.numberreps == Inf
+                S.sequence.seqIndex =  S.sequence.seq;
+            else
+                S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+            end
+            hit = 1;
+        end
+    end
+end
+
 if hit == 0;
     S.sequence.on = 0;
     S.sequence.thisseq = 0;
     S.sequence.loopthisseq = S.sequence.thisseq;
     S.sequence.nseq = 0;
     S.sequence.parametername = '';
+    S.sequence.basestimseq = [];
     S.sequence.parametervalues = [];
     S.sequence.data = [];
     S.sequence.seq = [1:S.sequence.nseq];
@@ -686,6 +713,9 @@ elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle'
     %round(S.stim.sampperperiod/length(pulse));
     stimData = repmat(pulse,nReps,1);
     %stimDataTrans = repmat(pulse,nReps,1);
+    if S.ampblank.on == 1;
+        S.ampblank.pulsetrain = repmat(S.ampblank.singlepulse,nReps,1);
+    end
     
     if S.stim.ampmoddepth ~= 0
         stimData = (1+(S.stim.ampmoddepth/100)*cos(2*pi*S.stim.ampmodfreq*tvec + S.stim.ampmodphase*2*pi))'.*stimData;
@@ -711,11 +741,12 @@ if S.basestim.stim == 1;
 else
     % or add zero buffers
     stimData = [zvec_delay; stimData; zvec];
-    stimDataTrans = [zvec_delay; stimDataTrans; zvec];
-    
+    stimDataTrans = [zvec_delay; stimDataTrans; zvec]; 
 end
 
-
+if S.ampblank.on == 1;
+    S.ampblank.pulsetrain = [zvec_delay; S.ampblank.pulsetrain; zvec]; 
+end
 
 % check charge balance
 cb = sum(stimData(:));
@@ -726,7 +757,6 @@ cb = sum(stimDataTrans(:));
 if cb > 0.5
     disp(['WARNING: Stimulus is not charge balanced - ' num2str(cb) ' samples or ' num2str((cb*1/NI.Rate)*1000) 'mA offset' ])
 end
-
 
 S.stim.data = [];
 S.stim.transitiondata = [];
@@ -743,6 +773,10 @@ if nD == 1
         triggerData(1:nTrigSamps) = S.trigger.amp;
         S.stim.data(:,1) = triggerData;
         S.stim.transitiondata(:,1) = triggerData;
+    end
+    if S.ampblank.on == 1;
+        S.stim.data(:,S.ampblank.pulsechind) = S.ampblank.pulsetrain;
+        S.stim.transitiondata(:,S.ampblank.pulsechind) = S.ampblank.pulsetrain;
     end
 else
     if S.trigger.on == 1
@@ -762,7 +796,6 @@ set(S.stim.repsplayedbut,'String',['rep ' num2str(S.stim.repsplayed)]);
 %-------------------------------------------------------------------------
 function [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay);
 global S NI
-
 
 sampperrep = round(NI.Rate*(S.stim.burstrepperiod/1000));
 tvec = [1/NI.Rate:1/NI.Rate:sampperrep/S.ni.rate];
@@ -788,8 +821,6 @@ elseif S.basestim.dc == 1
     baseDataTrans = S.basestim.amplitude*ones(size(tvec'));
 end
 
-
-
 S.basestim.data = baseData;
 S.basestim.transitiondata = baseDataTrans;
 
@@ -814,7 +845,11 @@ global S NI
 
 S.sequence.data.stim1 = S.stim.data;
 for n = 2:S.sequence.nseq
-    eval(['S.stim.' S.sequence.parametername ' = S.sequence.parametervalues(n);']);
+    if S.sequence.basestimseq == 0;
+        eval(['S.stim.' S.sequence.parametername ' = S.sequence.parametervalues(n);']);
+    elseif S.sequence.basestimseq == 1;
+        eval(['S.basestim.' S.sequence.parametername ' = S.sequence.parametervalues(n);']);
+    end
     NImakeStim;
     eval(['S.sequence.data.stim' num2str(n) '  = S.stim.data;']);
 end
@@ -899,9 +934,24 @@ zerosamps = sampperpulse-length(pulse);
 if zerosamps < 0
     disp('WARNING: Pulse width is too long for this stimulation frequency')
 end
-zvec = zeros(zerosamps,1);
 
-pulse = [pulse; zvec];
+if S.ampblank.on == 0;
+    zvec = zeros(zerosamps,1);
+    pulse = [pulse; zvec];
+elseif S.ampblank.on == 1;
+    S.ampblank.prepulsensamp = ceil(S.ampblank.prepulsetime*S.ni.rate);
+    S.ampblank.postpulsensamp = ceil(S.ampblank.postpulsetime*S.ni.rate);
+   
+    blankpulse = S.ampblank.pulseamp*ones(length(pulse)+S.ampblank.prepulsensamp +S.ampblank.postpulsensamp,1);
+    
+    zvec1 = zeros(S.ampblank.prepulsensamp,1);
+    zvec2 = zeros(zerosamps - S.ampblank.prepulsensamp,1);
+    pulse = [zvec1; pulse; zvec2];
+    
+    zerosamps = sampperpulse-length(blankpulse);
+    zvec = zeros(zerosamps,1);
+    S.ampblank.singlepulse = [blankpulse; zvec];
+end
 
 %-------------------------------------------------------------------------
 function NIclose
@@ -1369,6 +1419,9 @@ if sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle','ga
     end
     plot([0:length(pulse)-1]/S.ni.rate * 1e6,pulse,'.-')
     hold on
+    if S.ampblank.on == 1;
+        plot([0:length(pulse)-1]/S.ni.rate * 1e6,S.ampblank.singlepulse,'r')
+    end
     xlabel('Time (\muS)')
     xlim([0 2*(S.stim.phase1pulsewidth + S.stim.phase2pulsewidth + S.stim.phasegap)])
     ylim([min(pulse)*1.1 max(pulse)*1.1])

@@ -50,11 +50,11 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
     disp(['Applying settings for ' S.ni.description])
-    S.ni.chin =  [1 2]; %  [1 2 3 18 19 22];   ; %      %[1 2 3]; %  %[18 19 22 23]; % %  % % %
-    S.ni.chilabel = {'Current','Voltage'}; % {'Current','Voltage','Trigger','X','Y','Z'}; %
+    S.ni.chin =  [1 2 3 18 19 22];    %     [1 2]; %    %[1 2 3]; %  %[18 19 22 23]; % %  % % %
+    S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'}; % {'Current','Voltage'}; % 
     S.ni.chout = [0 1 2]; % 0 out is always trigger
-    S.ni.rate = 200e3; %10e3; %
-    S.ni.voltrange = [-1 1; -10 10];% [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;]; %  [-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %
+    S.ni.rate = 10e3; %200e3; %
+    S.ni.voltrange =  [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;]; % [-1 1; -10 10];% [-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','SingleEnded'}; %%{'Differential','Differential','Differential'}; % %{'SingleEnded','Differential','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded'};
 elseif strcmp(S.ni.description,'no device')
     S.ni.chin = [1 2 3 18 19 22];
@@ -171,10 +171,22 @@ S.sequence.thisseq = 0;
 S.sequence.loopthisseq = S.sequence.thisseq;
 S.sequence.nseq = 0;
 S.sequence.parametername = '';
+S.sequence.basestimseq = [];
 S.sequence.parametervalues = [];
 S.sequence.data = [];
 S.sequence.seq = [1:S.sequence.nseq];
 S.sequence.seqIndex =  S.sequence.seq;
+%% ----- Blank Amplifier Pulse -----
+
+S.ampblank.on = 1; % should only be used with pulsatile stimulation
+S.ampblank.prepulsetime = 20e-6;
+S.ampblank.postpulsetime =  20e-6;
+S.ampblank.singlepulse = [];
+S.ampblank.pulsetrain = [];
+S.ampblank.prepulsensamp = ceil(S.ampblank.prepulsetime*S.ni.rate);
+S.ampblank.postpulsensamp = ceil(S.ampblank.postpulsetime*S.ni.rate);
+S.ampblank.pulseamp = 5;
+S.ampblank.pulsechind = 3;
 
 %% ----- Impedance Monitoring -----
 S.impedance.calc = 0;

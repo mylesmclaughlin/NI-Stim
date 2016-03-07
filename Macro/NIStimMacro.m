@@ -60,6 +60,8 @@ for n = 1:length(M)
     end
     pause(2*M(n).stim.burstrepperiod/1e3 + 3*S.ni.updateperiod) % wait for rep to end and update to happen before stopping
     NIStim('stopStim')
+    NIStim('stopRec')
+
     
     disp(['Recorded data to ' M(n).macro.localfilename])
     disp('--------------------------------------------')

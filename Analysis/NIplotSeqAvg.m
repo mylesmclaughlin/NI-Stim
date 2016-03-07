@@ -78,40 +78,10 @@ if ~isempty(accelInd)
         ymin = [];
         for n = 1:A.nSeq
             
-            %             data = squeeze(A.avgData(n,:,accelInd(i)));
-            %             eval(['dataE = squeeze(A.allData' num2str(n) '(end,:,accelInd(i)));']);
-            %             eval(['dataS = squeeze(A.allData' num2str(n) '(1,:,accelInd(i)));']);
-            %             zInd = find(A.tvec<0);
-            %             stimStartInd = zInd(end)+1;
-            %             calib = mean(data(zInd));
-            %             calibE = mean(dataE(zInd));
-            %             calibS = mean(dataS(zInd));
-            %             data = data - calib;
-            %             dataE = dataE - calibE;
-            %             dataS = dataS - calibS;
-            %             %data(stimStartInd:end) = detrend(data(stimStartInd:end));
-            %
-            %             data = filter(filterb,filtera,data);
-            %             data = cumtrapz(data);
-            %             data = filter(filterb,filtera,data);
-            %             data = cumtrapz(data);
-            %             ydata = data;
-            %
-            %             dataE = filter(filterb,filtera,dataE);
-            %             dataE = cumtrapz(dataE);
-            %             dataE = filter(filterb,filtera,dataE);
-            %             dataE = cumtrapz(dataE);
-            %             ydataE = dataE;
-            %
-            %             dataS = filter(filterb,filtera,dataS);
-            %             dataS = cumtrapz(dataS);
-            %             dataS = filter(filterb,filtera,dataS);
-            %             dataS = cumtrapz(dataS);
-            %             ydataS = dataS;
             
             zInd = find(A.tvec<0);
-            %artInd = find(A.tvec<150e-3);
             stimStartInd = zInd(end)+1;
+            
             eval(['allData = squeeze(A.allData' num2str(n) '(:,:,accelInd(i)));'])
             
             for j = 1:length(allData(:,1))
