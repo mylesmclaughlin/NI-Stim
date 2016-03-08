@@ -147,6 +147,7 @@ if isfield(M,'basestim')
         S.basestim.amplitude = M.basestim.amplitude;
         S.basestim.frequency = M.basestim.frequency;
         S.basestim.phase = M.basestim.phase;
+        S.basestim.burstdur = M.basestim.burstdur;
         S.basestim.dc = M.basestim.dc;
         S.basestim.ampmoddepth = M.basestim.ampmoddepth;
         S.basestim.ampmodfreq = M.basestim.ampmodfreq;

@@ -62,6 +62,7 @@ set(S.stim.phase2pwbut,'string',num2str(P.stim.phase2pulsewidth));
 set(S.stim.phase1ampbut,'string',num2str(P.stim.phase1amp));
 set(S.stim.phase2ampbut,'string',num2str(P.stim.phase2amp));
 set(S.stim.phasegapbut,'string',num2str(P.stim.phasegap));
+S.stim.randomizesequence = P.stim.randomizesequence;
 
 if isfield(P,'basestim')
       % delay normal stimulus
@@ -71,6 +72,7 @@ if isfield(P,'basestim')
         S.basestim.amplitude = P.basestim.amplitude;
         S.basestim.frequency = P.basestim.frequency;
         S.basestim.phase = P.basestim.phase;
+        S.basestim.burstdur = P.basestim.burstdur;
         S.basestim.dc = P.basestim.dc;
         S.basestim.ampmoddepth = P.basestim.ampmoddepth;
         S.basestim.ampmodfreq = P.basestim.ampmodfreq;

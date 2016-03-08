@@ -287,6 +287,7 @@ S.stim.firstqueue = 1;
 if S.sequence.on == 1
     NImakeSeqStim
 end
+NIsaveStimParam % make sure correct data is saved
 
 % Add channels
 NI.stop
@@ -531,7 +532,7 @@ S.stim.phase1amp = str2num(get(S.stim.phase1ampbut,'string'));
 S.stim.phase2amp = str2num(get(S.stim.phase2ampbut,'string'));
 S.stim.phasegap = str2num(get(S.stim.phasegapbut,'string'));
 
-SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};
+SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq','burstdelay'};
 hit = 0;
 for n = 1:length(SequenceFields)
     eval(['param = S.stim.' SequenceFields{n} ';']);
@@ -555,17 +556,22 @@ for n = 1:length(SequenceFields)
     end
 end
 
+if S.stim.randomizesequence == 1 
+    rInd = randperm(length(S.sequence.seqIndex));
+    S.sequence.seqIndex = S.sequence.seqIndex(rInd);
+end
+
 if hit == 0 % look for sequence in basestimulus
     BaseSequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};
-    for n = 1:length(SequenceFields)
-        eval(['param = S.basestim.' SequenceFields{n} ';']);
+    for n = 1:length(BaseSequenceFields)
+        eval(['param = S.basestim.' BaseSequenceFields{n} ';']);
         fieldL = length(param);
         if fieldL>1
             S.sequence.on = 1;
             S.sequence.thisseq = 0;
             S.sequence.loopthisseq = 1;
             S.sequence.nseq = fieldL;
-            S.sequence.parametername = SequenceFields{n};
+            S.sequence.parametername = BaseSequenceFields{n};
             S.sequence.basestimseq = 1;
             S.sequence.parametervalues = param;
             eval(['S.basestim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
@@ -591,6 +597,7 @@ if hit == 0;
     S.sequence.data = [];
     S.sequence.seq = [1:S.sequence.nseq];
     S.sequence.seqIndex =  S.sequence.seq;
+    S.stim.randomizesequence = 0;
 end
 
 %-------------------------------------------------------------------------
@@ -798,7 +805,10 @@ function [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_de
 global S NI
 
 sampperrep = round(NI.Rate*(S.stim.burstrepperiod/1000));
-tvec = [1/NI.Rate:1/NI.Rate:sampperrep/S.ni.rate];
+sampperburst = round(NI.Rate*(S.basestim.burstdur/1000));
+nzerosamp = sampperrep-sampperburst;
+
+tvec = [1/NI.Rate:1/NI.Rate:sampperburst/S.ni.rate];
 if S.basestim.dc == 0
 if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
     if S.basestim.ampmoddepth == 0
@@ -820,6 +830,10 @@ elseif S.basestim.dc == 1
     baseData = S.basestim.amplitude*ones(size(tvec'));
     baseDataTrans = S.basestim.amplitude*ones(size(tvec'));
 end
+
+zvec = zeros(nzerosamp,1);
+baseData = [baseData; zvec];
+baseDataTrans = [baseDataTrans; zvec];
 
 S.basestim.data = baseData;
 S.basestim.transitiondata = baseDataTrans;

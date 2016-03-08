@@ -1,54 +1,47 @@
-function P = NIStimPreset_tACS_temporalDynamics
+function P = NIStimPreset_tACS_NetworkTemporalDynamics
 
 
 %% - Setup the marco struture -
 
 % Setup the macro variables
-P.preset.basefilename = 'RatTACSTempDynam-'; % set base file name
+P.preset.basefilename = 'RatTACSNetTempDynam-'; % set base file name
 P.preset.basefilename = [P.preset.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
 P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only;
 
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = 0.2;
-subThresFreq = 4;
+subThresAmp = 0.05;
+subThresFreq = 2;
 subThresDC = 0;
-subThresDurOn = 180;
-subThresDurOff = 60;
-subThresOffFirst = 1;
-subThresNumberreps = 5;
-disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps) ' minutes'])
+subThresNcycles = 4;
+subThresNumberreps = 2;
+subThresDurOn = subThresNcycles*(1/subThresFreq);
+subThresDurOff = 2*subThresDurOn;
 
 % supra-threshold (probe pulse train) settings
 phaseDelay = 0.25; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
-supThresBurstdelay = 1000*(1/subThresFreq)*phaseDelay;
+probePulseDelays = [0 [0:2*subThresNcycles]+phaseDelay];
+supThresBurstDelaySeq = 1000*(1/subThresFreq)*probePulseDelays;
 supThresAmp = 4;
 supThresFreq = 300;
 supThresBurstdur = 50;
-supThresBurstrepperiod = 60000; % ms
+supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 supThresWaveformindex = 2; % biphasic pulse
 supThresPhase1pulsewidth = 200;
 supThresPhase2pulsewidth = 200;
 
-% calculate NIstim parameters
-nSeqOn = subThresDurOn/(supThresBurstrepperiod/1000);
-nSeqOff = subThresDurOff/(supThresBurstrepperiod/1000);
-if subThresOffFirst == 1
-    subThresAmpSeq = [zeros(1,nSeqOff) subThresAmp*ones(1,nSeqOn)];
-elseif subThresOffFirst == 0
-    subThresAmpSeq = [subThresAmp*ones(1,nSeqOn) zeros(1,nSeqOff)];
-end
+disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(supThresBurstDelaySeq)) ' minutes'])
 
+
+randomizesequence = 1;
 % store settings for stimulus reconstruction 
-P.preset.subThresAmpSeq = subThresAmpSeq;
 P.preset.subThresFreq = subThresFreq;
 P.preset.subThresDC = subThresDC;
 P.preset.subThresDurOn = subThresDurOn;
 P.preset.subThresDurOff = subThresDurOff;
-P.preset.subThresOffFirst = subThresOffFirst;
 P.preset.subThresNumberreps = subThresNumberreps;
-
+P.preset.randomizesequence = randomizesequence;
 
 %--------- make preset stimulus and base stimulus settings ---------
 P.stim.stim = 0;
@@ -72,15 +65,15 @@ P.stim.phase1amp = 100;
 P.stim.phase2amp = -100;
 P.stim.phasegap = 0;
 P.stim.sameonallchannels = 1;
-P.stim.randomizesequence = 0;
+P.stim.randomizesequence = randomizesequence;
 
-P.stim.burstdelay = supThresBurstdelay;
+P.stim.burstdelay = supThresBurstDelaySeq;
 
 P.basestim.stim = 1;
-P.basestim.amplitude = subThresAmpSeq;
+P.basestim.amplitude = subThresAmp;
 P.basestim.frequency = subThresFreq;
 P.basestim.phase = 0;
-P.basestim.burstdur = supThresBurstdur;
+P.basestim.burstdur = subThresDurOn*1000;
 P.basestim.dc = subThresDC;
 P.basestim.ampmoddepth = 0;
 P.basestim.ampmodfreq = 5;

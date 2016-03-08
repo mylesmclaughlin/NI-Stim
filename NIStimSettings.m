@@ -153,6 +153,7 @@ S.basestim.stim = 0;
 S.basestim.amplitude = 1;
 S.basestim.frequency = 100;
 S.basestim.phase = 0;
+S.basestim.burstdur = 500;
 S.basestim.dc = 0;
 S.basestim.ampmoddepth = 0;
 S.basestim.ampmodfreq = 5;
@@ -163,7 +164,6 @@ S.basestim.phase2pulsewidth = 50;
 S.basestim.phase1amp = 100;
 S.basestim.phase2amp = -100;
 S.basestim.phasegap = 0;
-
 
 %% ----- Sequence Stimulus ----
 S.sequence.on = 0;
@@ -176,8 +176,8 @@ S.sequence.parametervalues = [];
 S.sequence.data = [];
 S.sequence.seq = [1:S.sequence.nseq];
 S.sequence.seqIndex =  S.sequence.seq;
-%% ----- Blank Amplifier Pulse -----
 
+%% ----- Blank Amplifier Pulse -----
 S.ampblank.on = 0; % should only be used with pulsatile stimulation
 S.ampblank.prepulsetime = 20e-6;
 S.ampblank.postpulsetime =  20e-6;
