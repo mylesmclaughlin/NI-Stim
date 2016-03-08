@@ -43,11 +43,11 @@ end
 if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     disp(['Applying settings for ' S.ni.description] )
     S.ni.chin = [0 1 2 3 4 5];
-    S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'};
+    S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','MeasEl'};%{'Current','Voltage','Trigger','X','Y','Z'};
     S.ni.chout = [0 1];
-    S.ni.rate = 1e3;
+    S.ni.rate = 10e3;
     S.ni.voltrange =  [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
-    S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
+    S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','Differential'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
     disp(['Applying settings for ' S.ni.description])
     S.ni.chin =  [1 2 3 18 19 22];    %     [1 2]; %    %[1 2 3]; %  %[18 19 22 23]; % %  % % %
@@ -178,7 +178,7 @@ S.sequence.seq = [1:S.sequence.nseq];
 S.sequence.seqIndex =  S.sequence.seq;
 %% ----- Blank Amplifier Pulse -----
 
-S.ampblank.on = 1; % should only be used with pulsatile stimulation
+S.ampblank.on = 0; % should only be used with pulsatile stimulation
 S.ampblank.prepulsetime = 20e-6;
 S.ampblank.postpulsetime =  20e-6;
 S.ampblank.singlepulse = [];

@@ -11,11 +11,11 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = 1;
+subThresAmp = 0.2;
 subThresFreq = 4;
-subThresDC = 1;
-subThresDurOn = 10;
-subThresDurOff = 20;
+subThresDC = 0;
+subThresDurOn = 180;
+subThresDurOff = 60;
 subThresOffFirst = 1;
 subThresNumberreps = 5;
 disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps) ' minutes'])
@@ -25,8 +25,8 @@ phaseDelay = 0.25; % phaseDelay in function of subthreshold stim frequency - 0 =
 supThresBurstdelay = 1000*(1/subThresFreq)*phaseDelay;
 supThresAmp = 4;
 supThresFreq = 300;
-supThresBurstdur = 100;
-supThresBurstrepperiod = 5000;
+supThresBurstdur = 50;
+supThresBurstrepperiod = 60000; % ms
 supThresWaveformindex = 2; % biphasic pulse
 supThresPhase1pulsewidth = 200;
 supThresPhase2pulsewidth = 200;
