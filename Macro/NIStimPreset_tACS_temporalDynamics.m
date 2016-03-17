@@ -11,22 +11,22 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = 0.2;
+subThresAmp = -0.05;
 subThresFreq = 4;
-subThresDC = 0;
-subThresDurOn = 180;
-subThresDurOff = 60;
-subThresOffFirst = 1;
-subThresNumberreps = 5;
+subThresDC = 1;
+subThresDurOn = 300;
+subThresDurOff = 180;
+subThresOffFirst = 0;
+subThresNumberreps = 1;
 disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps) ' minutes'])
 
 % supra-threshold (probe pulse train) settings
-phaseDelay = 0.25; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
+phaseDelay = 0; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
 supThresBurstdelay = 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = 4;
+supThresAmp = 2.8;
 supThresFreq = 300;
-supThresBurstdur = 50;
-supThresBurstrepperiod = 60000; % ms
+supThresBurstdur = 100;
+supThresBurstrepperiod = 30000; % ms
 supThresWaveformindex = 2; % biphasic pulse
 supThresPhase1pulsewidth = 200;
 supThresPhase2pulsewidth = 200;
@@ -80,7 +80,7 @@ P.basestim.stim = 1;
 P.basestim.amplitude = subThresAmpSeq;
 P.basestim.frequency = subThresFreq;
 P.basestim.phase = 0;
-P.basestim.burstdur = supThresBurstdur;
+P.basestim.burstdur = supThresBurstrepperiod;
 P.basestim.dc = subThresDC;
 P.basestim.ampmoddepth = 0;
 P.basestim.ampmodfreq = 5;

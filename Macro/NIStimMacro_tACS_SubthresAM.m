@@ -6,7 +6,7 @@ function M = NIStimMacro_tACS_SubthresAM
 % Setup the macro variables
 M(1).macro.basefilename = 'RatTACSSubThres-'; % set base file name
 M(1).macro.basefilename = [M(1).macro.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
-M(1).macro.nreps = 5; % - number of time to repeated each stimulus contained in the macro structure
+M(1).macro.nreps = 3; % - number of time to repeated each stimulus contained in the macro structure
 M(1).macro.randomize = 1;  % randomize the order of stimului presentation
 M(1).macro.record = 1; % record data (separate file for each rep of macro)
 
@@ -17,8 +17,8 @@ elseif M(1).macro.record == 1
 end
 
 % Set fixed variables for easy modification
-numberreps = 1 ;
-ampRange = [2.4:.2:3.4];
+numberreps = 1;
+ampRange = [2:.2:2.4];
 freq = 300;
 burstdur = 100;
 burstrepperiod = 2000;
@@ -26,15 +26,17 @@ waveformindex = 2;
 phase1pulsewidth = 200;
 phase2pulsewidth = 200;
 
-subthresAmp = 0.5;
+subthresAmp = 0.2;
 subthresFreq = 4;
 subthresCar = freq;
 subthresAmpModDepth = 0;
 
+delay = [0 0 0 0:0.25:1.0000]
+
 %% --Setup stimulation variables in a struct array --
 
 % set supra threshold same for all conditions
-for n = 1:12
+for n = 1:length(delay)
     M(n).stim.stim = 0;
     M(n).stim.amplitude = ampRange;
     M(n).stim.frequency = freq;
@@ -70,7 +72,7 @@ M(n).basestim.stim = 0;
 M(n).basestim.amplitude = subthresAmp;
 M(n).basestim.frequency = 2;
 M(n).basestim.phase = 0;
-M(n).basestim.burstdur = burstdur;
+M(n).basestim.burstdur = burstrepperiod;
 M(n).basestim.dc = 0;
 M(n).basestim.ampmoddepth = 0;
 M(n).basestim.ampmodfreq = 5;
@@ -91,7 +93,7 @@ M(n).basestim.stim = 1;
 M(n).basestim.amplitude = -subthresAmp;
 M(n).basestim.frequency = subthresFreq;
 M(n).basestim.phase = 0;
-M(n).basestim.burstdur = burstdur;
+M(n).basestim.burstdur = burstrepperiod;
 M(n).basestim.dc = 1;
 M(n).basestim.ampmoddepth = 0;
 M(n).basestim.ampmodfreq = 5;
@@ -112,7 +114,7 @@ M(n).basestim.stim = 1;
 M(n).basestim.amplitude = subthresAmp;
 M(n).basestim.frequency = subthresFreq;
 M(n).basestim.phase = 0;
-M(n).basestim.burstdur = burstdur;
+M(n).basestim.burstdur = burstrepperiod;
 M(n).basestim.dc = 1;
 M(n).basestim.ampmoddepth = 0;
 M(n).basestim.ampmodfreq = 5;
@@ -131,7 +133,6 @@ M(n).basestim.waveformindex = 1;
 
 %delay = [0 2/8 3/8 4/8 5/8 6/8];
 %delay = [0 0.2500    0.3750    0.5000    0.6250    0.7500    0.8750    1.0000];
-delay = [0 0 0 0:0.125:1.0000]
 
 for n = 4:length(delay)
     M(n).stim.seqname = ['singlefreq' num2str(delay(n))]; %
@@ -143,7 +144,7 @@ for n = 4:length(delay)
     M(n).basestim.amplitude = subthresAmp;
     M(n).basestim.frequency = subthresFreq;
     M(n).basestim.phase = 0;
-    M(n).basestim.burstdur = burstdur;
+    M(n).basestim.burstdur = burstrepperiod;
     M(n).basestim.dc = 0;
     M(n).basestim.ampmoddepth = 0;
     M(n).basestim.ampmodfreq = 5;

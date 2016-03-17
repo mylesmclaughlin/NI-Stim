@@ -92,17 +92,28 @@ A.stimInd = [];
 A.postStimInd = [];
 if P.preset.subThresOffFirst == 0
     A.preStimInd = [];
-    A.stimInd = [];
-    A.postStimInd = [];
+    A.stimInd = [1:nSeqOn];
+    A.postStimInd = [nSeqOn+1:nSeq];
+    if nReps>1
+        for n = 2:nReps
+            A.stimInd = [A.stimInd; A.stimInd(end)+nSeqOff+1:A.stimInd(end)+nSeq];
+            A.postStimInd = [A.postStimInd; A.postStimInd(end)+nSeqOn+1:A.postStimInd(end)+nSeq];
+        end
+    end
+    A.preStimNReps = 0;
+    A.stimNReps = nReps;
+    A.postStimNReps = nReps;
 elseif P.preset.subThresOffFirst == 1
     A.preStimInd = [1:nSeqOff];
     A.stimInd = [nSeqOff+1:nSeq];
     A.postStimInd = [nSeq+1:nSeq+nSeqOff];
-    for n = 2:nReps
-        A.stimInd = [A.stimInd; A.stimInd(end)+nSeqOff+1:A.stimInd(end)+nSeq];
-    end
-    for n = 2:nReps-1
-        A.postStimInd = [A.postStimInd; A.postStimInd(end)+nSeqOn+1:A.postStimInd(end)+nSeq];
+    if nReps>1    
+        for n = 2:nReps
+            A.stimInd = [A.stimInd; A.stimInd(end)+nSeqOff+1:A.stimInd(end)+nSeq];
+        end
+        for n = 2:nReps-1
+            A.postStimInd = [A.postStimInd; A.postStimInd(end)+nSeqOn+1:A.postStimInd(end)+nSeq];
+        end
     end
     A.preStimNReps = 1;
     A.stimNReps = nReps;
@@ -118,7 +129,9 @@ end
 for n = 1:A.postStimNReps
     A.postStimData(:,n,:,:) = A.allData(A.postStimInd(n,:),:,:);
 end
-A.preStimData(:,1,:,:) = A.allData(A.preStimInd,:,:);
+if A.preStimNReps>0
+    A.preStimData(:,1,:,:) = A.allData(A.preStimInd,:,:);
+end
 
 % convert to displacement
 accelInd = [4 5 6];
@@ -131,39 +144,46 @@ trigArtInd = find(A.tvec<15e-3);
 stimStartInd = trigArtInd(end)+1;
 
 A.stimDisp = zeros(size(A.stimData));
-
+nCh = 6;
 for n = 1:A.stimNReps
     for m = 1:A.nSeqOn
-        data = squeeze(A.stimData(m,n,stimStartInd:end,:));
-        calib = mean(data(zInd));
-        data = data - calib;
-        data = filtfilt(filterb,filtera,data);
-        data = cumtrapz(data);
-        data = filtfilt(filterb,filtera,data);
-        A.stimDisp(m,n,stimStartInd:end,:) = cumtrapz(data);
+        for i = 1:nCh
+            data = squeeze(A.stimData(m,n,stimStartInd:end,i));
+            calib = mean(data(zInd));
+            data = data - calib;
+            data = filtfilt(filterb,filtera,data);
+            data = cumtrapz(data);
+            data = filtfilt(filterb,filtera,data);
+            A.stimDisp(m,n,stimStartInd:end,i) = cumtrapz(data);
+        end
     end
 end
 for n = 1:A.postStimNReps
     for m = 1:A.nSeqOff
-        data = squeeze(A.postStimData(m,n,:,:));
-        calib = mean(data(zInd));
-        data = data - calib;
-        data = filtfilt(filterb,filtera,data);
-        data = cumtrapz(data);
-        data = filtfilt(filterb,filtera,data);
-        A.postStimDisp(m,n,:,:) = cumtrapz(data);
+        for i = 1:nCh     
+            data = squeeze(A.postStimData(m,n,:,i));
+            calib = mean(data(zInd));
+            data = data - calib;
+            data = filtfilt(filterb,filtera,data);
+            data = cumtrapz(data);
+            data = filtfilt(filterb,filtera,data);
+            A.postStimDisp(m,n,:,i) = cumtrapz(data);
+        end
     end
 end
-for m = 1:A.nSeqOff
-    data = squeeze(A.preStimData(m,1,:,:));
-    calib = mean(data(zInd));
-    data = data - calib;
-    data = filtfilt(filterb,filtera,data);
-    data = cumtrapz(data);
-    data = filtfilt(filterb,filtera,data);
-    A.preStimDisp(m,1,:,:) = cumtrapz(data);
+if A.preStimNReps>0
+    for m = 1:A.nSeqOff
+        for i = 1:nCh
+            data = squeeze(A.preStimData(m,1,:,i));
+            calib = mean(data(zInd));
+            data = data - calib;
+            data = filtfilt(filterb,filtera,data);
+            data = cumtrapz(data);
+            data = filtfilt(filterb,filtera,data);
+            A.preStimDisp(m,1,:,i) = cumtrapz(data);
+        end
+    end
 end
-
 
 
 % take average
@@ -171,8 +191,9 @@ A.stimDataAvgDimensionNames = {'Time','Data','Channel'};
 
 A.stimDataAvg = squeeze(mean(A.stimData,2));
 A.postStimDataAvg = squeeze(mean(A.postStimData,2));
-A.preStimDataAvg = squeeze(mean(A.preStimData,2));
-
+if A.preStimNReps>0
+    A.preStimDataAvg = squeeze(mean(A.preStimData,2));
+end
 
 A.stimDispAvg = squeeze(mean(A.stimDisp,2));
 A.postStimDispAvg = squeeze(mean(A.postStimDisp,2));
@@ -180,12 +201,13 @@ if ndims(A.postStimDispAvg)<3
     a(1,:,:) = A.postStimDispAvg;
     A.postStimDispAvg = a;
 end
-A.preStimDispAvg = squeeze(mean(A.preStimDisp,2));
-if ndims(A.preStimDispAvg)<3
-    a(1,:,:) = A.preStimDispAvg;
-    A.preStimDispAvg = a;
+if A.preStimNReps>0
+    A.preStimDispAvg = squeeze(mean(A.preStimDisp,2));
+    if ndims(A.preStimDispAvg)<3
+        a(1,:,:) = A.preStimDispAvg;
+        A.preStimDispAvg = a;
+    end
 end
-
 
 A.stimDispSTD = squeeze(std(A.stimDisp,0,2));
 A.postStimDispSTD = squeeze(std(A.postStimDisp,0,2));
@@ -212,6 +234,7 @@ for m = 1:A.nSeqOff
         A.postStimRespSTD(m,i) = A.postStimDispSTD(m,ind,accelChInd(i));
     end
 end
+if A.preStimNReps>0
 for m = 1:A.nSeqOff
     for i = 1:length(accelChInd)
         [val,ind] = max(abs(A.preStimDispAvg(m,:,accelChInd(i))));
@@ -219,7 +242,7 @@ for m = 1:A.nSeqOff
         %A.preStimRespSTD(m,i) = A.preStimDispSTD(m,ind,accelChInd(i));
     end
 end
-
+end
 % -- check plot --
 % figure; hold on
 % for n = 1:A.nTrig
@@ -241,20 +264,31 @@ for i = 1:3
     end
     
     figure('name',figName)
-    a = A.preStimDispAvg(:,:,4:6);
-    b = A.stimDispAvg(:,:,4:6);
-    c = A.postStimDispAvg(:,:,4:6);
-    
-    yl(1) = min([a(:); b(:); c(:)]);
-    yl(2) = max([a(:); b(:); c(:)]);
-    
-    subplot(1,3,1)
-    for n = 1:A.nSeqOff
-        plot(A.tvec+A.timeStamps(n),A.preStimDispAvg(n,:,accelCh))
-        hold on
+    if A.preStimNReps>0
+        a = A.preStimDispAvg(:,:,4:6);
+        b = A.stimDispAvg(:,:,4:6);
+        c = A.postStimDispAvg(:,:,4:6);
+        
+        yl(1) = min([a(:); b(:); c(:)]);
+        yl(2) = max([a(:); b(:); c(:)]);
+        
+    else
+        b = A.stimDispAvg(:,:,4:6);
+        c = A.postStimDispAvg(:,:,4:6);
+        
+        yl(1) = min([b(:); c(:)]);
+        yl(2) = max([b(:); c(:)]);    
     end
-    ylim(yl)
-    title('Pre stim')
+    
+    if A.preStimNReps>0
+        subplot(1,3,1)
+        for n = 1:A.nSeqOff
+            plot(A.tvec+A.timeStamps(n),A.preStimDispAvg(n,:,accelCh))
+            hold on
+        end
+        ylim(yl)
+        title('Pre stim')
+    end
     
     subplot(1,3,2)
     for n = 1:A.nSeqOn
@@ -274,13 +308,20 @@ for i = 1:3
     
     
     figure('name',figName)
-    yl(1) = min([A.preStimRespAmp(:); A.stimRespAmp(:)-A.stimRespSTD(:); A.postStimRespAmp(:)-A.postStimRespSTD(:)]);
-    yl(2) = max([A.preStimRespAmp(:); A.stimRespAmp(:)+A.stimRespSTD(:); A.postStimRespAmp(:)+A.postStimRespSTD(:)]);
+    if A.preStimNReps>0
+        yl(1) = min([A.preStimRespAmp(:); A.stimRespAmp(:)-A.stimRespSTD(:); A.postStimRespAmp(:)-A.postStimRespSTD(:)]);
+        yl(2) = max([A.preStimRespAmp(:); A.stimRespAmp(:)+A.stimRespSTD(:); A.postStimRespAmp(:)+A.postStimRespSTD(:)]);
+    else
+        yl(1) = min([A.stimRespAmp(:)-A.stimRespSTD(:); A.postStimRespAmp(:)-A.postStimRespSTD(:)]);
+        yl(2) = max([A.stimRespAmp(:)+A.stimRespSTD(:); A.postStimRespAmp(:)+A.postStimRespSTD(:)]);
+    end        
     
-    subplot(1,3,1)
-    plot(A.timeStamps(1:A.nSeqOff),A.preStimRespAmp(:,accelCh-3),'b.-')
-    ylim(yl)
-    title('Pre stim')
+    if A.preStimNReps>0
+        subplot(1,3,1)
+        plot(A.timeStamps(1:A.nSeqOff),A.preStimRespAmp(:,accelCh-3),'b.-')
+        ylim(yl)
+        title('Pre stim')
+    end
     
     subplot(1,3,2)
     %plot(A.timeStamps(1:A.nSeqOn),A.stimRespAmp(:,accelCh-3),'b.-')

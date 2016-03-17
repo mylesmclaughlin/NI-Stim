@@ -287,7 +287,9 @@ S.stim.firstqueue = 1;
 if S.sequence.on == 1
     NImakeSeqStim
 end
-NIsaveStimParam % make sure correct data is saved
+try
+    NIsaveStimParam % make sure correct data is saved
+end
 
 % Add channels
 NI.stop
@@ -550,15 +552,18 @@ for n = 1:length(SequenceFields)
         if S.stim.numberreps == Inf
             S.sequence.seqIndex =  S.sequence.seq;
         else
-            S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+            if S.stim.randomizesequence == 0
+                S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+            elseif S.stim.randomizesequence == 1
+                S.sequence.seqIndex = [];
+                for r = 1:S.stim.numberreps
+                    rInd = randperm(S.sequence.nseq);
+                    S.sequence.seqIndex =  [S.sequence.seqIndex S.sequence.seq(rInd)];
+                end
+            end
         end
         hit = 1;
     end
-end
-
-if S.stim.randomizesequence == 1 
-    rInd = randperm(length(S.sequence.seqIndex));
-    S.sequence.seqIndex = S.sequence.seqIndex(rInd);
 end
 
 if hit == 0 % look for sequence in basestimulus
