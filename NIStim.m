@@ -194,6 +194,8 @@ set(S.rec.recbut,'String','Stop Rec','Callback','NIStim(''stopRec'')','backgroun
 
 NIsaveStimParam
 
+NIstopWatch('start'); % restart timer
+
 %-------------------------------------------------------------------------
 function NIsaveStimParam(stimOnly)
 global NI S
@@ -228,6 +230,7 @@ global NI S
 S.rec.rec = 0;
 set(S.rec.recbut,'String','Record','Callback','NIStim(''startRec'')','backgroundcolor',[0 1 0]);
 set(S.fig.fhdl,'name','NIStim')
+NIstopWatch('stop')
 
 %-------------------------------------------------------------------------
 function NIstartPlay
@@ -373,11 +376,11 @@ S.stim.current.amplitude = 0; % set to zero for ramp up on next stim
 S.stim.endtime = datestr(now);
 
 % Save any processed data processing
-if S.proc.proc == 1
-    S.proc.proc = 0;
-    set(S.proc.procbut,'value',S.proc.proc);
-    NIsaveProcessedData
-end
+% if S.proc.proc == 1
+%     S.proc.proc = 0;
+%     set(S.proc.procbut,'value',S.proc.proc);
+%     NIsaveProcessedData
+% end
 
 % Make sure to finish on zero
 % delete(RH);
@@ -643,6 +646,7 @@ else
     S.stim.period = (S.stim.burstrepperiod/1000);
 end
 S.stim.sampperperiod = round(NI.Rate*S.stim.period);
+
 
 % adjust ni buffer size to  multiple of stimulus period
 if S.stim.sampperperiod <= S.ni.buffersize
@@ -1014,6 +1018,7 @@ if S.rec.rec == 1
     else
         S.data.fid = binwrite(S.rec.fullfileName,S.data.header,eventData,S.data.datatype,0);
     end
+    NIstopWatch('update');
 end
 
 if S.stim.stim & S.impedance.calc
@@ -1455,6 +1460,11 @@ if S.stim.frequency > NI.Rate/2
     set(S.stim.freqbut, 'string', num2str(round(NI.Rate/2)))
 end
 
+% adjust stim freq to give exact value base on number of samples per period
+S.stim.frequency = NI.Rate/round(NI.Rate/S.stim.frequency);
+set(S.stim.freqbut,'String',num2str(S.stim.frequency));
+        
+
 %--------------------------------------------------------------------------
 function NIplaybackmode
 global S NI
@@ -1656,3 +1666,24 @@ S.current.namevalue = get(S.stim.stimulatorbut,'value');
 S.current.name = S.current.namelist(S.current.namevalue);
 S.current.onevoltequalsXmilliamps = S.current.onevoltequalsXmilliampslist(S.current.namevalue);
 set(S.stim.ampbuttxt,'String',['Amplitude (' S.current.namelistunits{S.current.namevalue} ')']);
+
+%--------------------------------------------------------------------------
+function NIstopWatch(command)
+global S
+
+switch command
+    case 'start'
+        tic
+    case 'update'
+        a=toc; sec = rem(a,60); min = (a-sec)/60;
+        if floor(sec)<10
+            timeStr = [num2str(min) ':0' num2str(floor(sec))];
+        else
+            timeStr = [num2str(min) ':' num2str(floor(sec))];
+        end
+        set(S.rec.recbut,'string',timeStr)
+    case 'stop'
+        timeStr = ['0:00'];
+end
+
+
