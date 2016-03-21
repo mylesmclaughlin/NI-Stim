@@ -4,9 +4,9 @@ function M = NIStimMacro_tACS_FreqResp
 %% - Setup the marco struture -
 
 % Setup the macro variables
-M(1).macro.basefilename = 'RatTACSFreqResp-'; % set base file name
+M(1).macro.basefilename = 'RatMeasEFFreqResp-'; % set base file name
 M(1).macro.basefilename = [M(1).macro.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
-M(1).macro.nreps = 5; % - number of time to repeated each stimulus contained in the macro structure
+M(1).macro.nreps = 2; % - number of time to repeated each stimulus contained in the macro structure
 M(1).macro.randomize = 1;  % randomize the order of stimului presentation
 M(1).macro.record = 1; % record data (separate file for each rep of macro)
 
@@ -18,7 +18,7 @@ end
 
 % Set fixed variables for easy modification
 numberreps = 1;
-ampRange = [3 3 3];
+ampRange = [2.8 2.8];
 freq = 300;
 burstdur = 100;
 burstrepperiod = 2000;
@@ -26,9 +26,9 @@ waveformindex = 2;
 phase1pulsewidth = 200;
 phase2pulsewidth = 200;
 
-subthresAmp = 0.1;
-subthresFreq = [0.5 1 2 4 8 16 32 64];
-delay = 0.25
+subthresAmp = 1;
+subthresFreq = [0.5 1 2 4 8 16 32 64]; %[0.25 0.5 0.75 1 2 3 4 6 8]; %
+delay = 0.25;
 
 %% --Setup stimulation variables in a struct array --
 

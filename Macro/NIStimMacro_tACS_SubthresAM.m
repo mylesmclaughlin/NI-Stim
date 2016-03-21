@@ -18,7 +18,7 @@ end
 
 % Set fixed variables for easy modification
 numberreps = 1;
-ampRange = [2:.2:2.4];
+ampRange = [2.8 3 3.2];
 freq = 300;
 burstdur = 100;
 burstrepperiod = 2000;
@@ -26,8 +26,8 @@ waveformindex = 2;
 phase1pulsewidth = 200;
 phase2pulsewidth = 200;
 
-subthresAmp = 0.2;
-subthresFreq = 4;
+subthresAmp = 0.3;
+subthresFreq = 1;
 subthresCar = freq;
 subthresAmpModDepth = 0;
 
