@@ -657,6 +657,7 @@ end
 % Make stim
 if S.stim.continuous == 1
     tvec = [1/NI.Rate:1/NI.Rate:S.stim.sampperperiod/S.ni.rate];
+    sampperburst = S.stim.sampperperiod;
     zvec = [];
     zvec_delay = [];
 elseif S.stim.continuous == 0
@@ -791,8 +792,10 @@ if nD == 1
         S.stim.transitiondata(:,1) = triggerData;
     end
     if S.ampblank.on == 1;
-        S.stim.data(:,S.ampblank.pulsechind) = S.ampblank.pulsetrain;
-        S.stim.transitiondata(:,S.ampblank.pulsechind) = S.ampblank.pulsetrain;
+        for n = 1:length(S.ampblank.pulsechind)
+            S.stim.data(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;
+            S.stim.transitiondata(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;
+        end
     end
 else
     if S.trigger.on == 1
