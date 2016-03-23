@@ -1,5 +1,6 @@
 function D = CurrentControl(command,name)
 
+
 hit = strfind(name,'DS5');
 if ~isempty(hit)
     name = 'Digitimer DS5';

@@ -45,7 +45,7 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.chin = [0 1 2 3 4 5];
     S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'};% {'Current','Voltage','Trigger','X','Y','MeasEl'};%
     S.ni.chout = [0 1];
-    S.ni.rate = 1024; %10e3; %
+    S.ni.rate = 10e3; % 1024; %
     S.ni.voltrange =  [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
@@ -105,7 +105,7 @@ S.current.namelist = {'DS5 10mA','DS5 2mA (Patients use 400kOhm cable)','AM 2200
 S.current.namelistunits = {'mA','mA','mA','V'};
 S.current.namevalue = 1;
 S.current.onevoltequalsXmilliampslist = [1 0.2 0.1 1]; %0.1;
-S.current.name = S.current.namelist(S.current.namevalue);
+S.current.name = S.current.namelist{S.current.namevalue};
 S.current.onevoltequalsXmilliamps = S.current.onevoltequalsXmilliampslist(S.current.namevalue);
 
 %% ------ Data ------
@@ -134,14 +134,14 @@ S.stim.repsplayed = 0;
 S.stim.ampmoddepth = 0;
 S.stim.ampmodfreq = 5;
 S.stim.ampmodphase = 0.5;
-S.stim.waveformindex = 1;
+S.stim.waveformindex = 2;
 S.stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
-S.stim.phase1pulsewidth = 50;
-S.stim.phase2pulsewidth = 50;
+S.stim.phase1pulsewidth = 200;
+S.stim.phase2pulsewidth = 200;
 S.stim.phase1amp = 100;
 S.stim.phase2amp = -100;
 S.stim.phasegap = 0;
-S.stim.stimdir = 'C:\Users\u0043883\Google Drive\Work\MATLAB\NI-Stim\Stimuli\';
+S.stim.stimdir = 'C:\Users\Public\MATLAB\NI-Stim\Stimuli\';
 S.stim.customfilename = '';
 S.stim.customdata = [];
 S.stim.sameonallchannels = 1;
@@ -178,9 +178,9 @@ S.sequence.seq = [1:S.sequence.nseq];
 S.sequence.seqIndex =  S.sequence.seq;
 
 %% ----- Blank Amplifier Pulse -----
-S.ampblank.on = 1; % should only be used with pulsatile stimulation
-S.ampblank.prepulsetime = 40e-6;
-S.ampblank.postpulsetime =  40e-6;
+S.ampblank.on = 0; % should only be used with pulsatile stimulation
+S.ampblank.prepulsetime = 100e-6;
+S.ampblank.postpulsetime =  100e-6;
 S.ampblank.singlepulse = [];
 S.ampblank.pulsetrain = [];
 S.ampblank.prepulsensamp = ceil(S.ampblank.prepulsetime*S.ni.rate);

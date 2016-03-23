@@ -17,21 +17,22 @@ end
 
 %--------------------------------------------------------------------------
 function D = AM2200connect
-global A B
+global X B
 
 device = daq.getDevices;
+% 
+% if strcmp(device(1).Description,'National Instruments USB-6216 (BNC)')
+%     devInd = 1;
+% elseif strcmp(device(2).Description,'National Instruments USB-6216 (BNC)')
+%     devInd = 2;
+% end
+devInd = strmatch('National Instruments USB-6216 (BNC)',{device.Description});
 
-if strcmp(device(1).Description,'National Instruments USB-6216 (BNC)')
-    devInd = 1;
-elseif strcmp(device(2).Description,'National Instruments USB-6216 (BNC)')
-    devInd = 2;
-end
-
-A.devname = device(devInd).ID;
-A.description = device(devInd).Description;
+X.devname = device(devInd).ID;
+X.description = device(devInd).Description;
 
 B = daq.createSession('ni');
-A.chD = addDigitalChannel(B,A.devname,'Port0/Line1:2', 'OutputOnly');
+X.chD = addDigitalChannel(B,X.devname,'Port0/Line1:2', 'OutputOnly');
 disp(['Connected to ' device(devInd).Description ' for AM 2200 current source control'])
 D = 1;
 

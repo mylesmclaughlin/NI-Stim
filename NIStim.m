@@ -287,8 +287,10 @@ NIparseStimGUI
 NImakeStim
 S.stim.firstqueue = 1;
 
-if S.sequence.on == 1
-    NImakeSeqStim
+if S.sequence.on == 1 
+    if ~strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom') % custom files should already contain sequenced data
+        NImakeSeqStim
+    end
 end
 try
     NIsaveStimParam % make sure correct data is saved
@@ -537,77 +539,78 @@ S.stim.phase1amp = str2num(get(S.stim.phase1ampbut,'string'));
 S.stim.phase2amp = str2num(get(S.stim.phase2ampbut,'string'));
 S.stim.phasegap = str2num(get(S.stim.phasegapbut,'string'));
 
-SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq','burstdelay'};
-hit = 0;
-for n = 1:length(SequenceFields)
-    eval(['param = S.stim.' SequenceFields{n} ';']);
-    fieldL = length(param);
-    if fieldL>1
-        S.sequence.on = 1;
-        S.sequence.thisseq = 0;
-        S.sequence.loopthisseq = 1;
-        S.sequence.nseq = fieldL;
-        S.sequence.parametername = SequenceFields{n};
-        S.sequence.basestimseq = 0;
-        S.sequence.parametervalues = param;
-        eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
-        S.sequence.seq = [1:S.sequence.nseq];
-        if S.stim.numberreps == Inf
-            S.sequence.seqIndex =  S.sequence.seq;
-        else
-            if S.stim.randomizesequence == 0
-                S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
-            elseif S.stim.randomizesequence == 1
-                S.sequence.seqIndex = [];
-                for r = 1:S.stim.numberreps
-                    rInd = randperm(S.sequence.nseq);
-                    S.sequence.seqIndex =  [S.sequence.seqIndex S.sequence.seq(rInd)];
-                end
-            end
-        end
-        hit = 1;
-    end
-end
-
-if hit == 0 % look for sequence in basestimulus
-    BaseSequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};
-    for n = 1:length(BaseSequenceFields)
-        eval(['param = S.basestim.' BaseSequenceFields{n} ';']);
+if ~strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
+    SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq','burstdelay'};
+    hit = 0;
+    for n = 1:length(SequenceFields)
+        eval(['param = S.stim.' SequenceFields{n} ';']);
         fieldL = length(param);
         if fieldL>1
             S.sequence.on = 1;
             S.sequence.thisseq = 0;
             S.sequence.loopthisseq = 1;
             S.sequence.nseq = fieldL;
-            S.sequence.parametername = BaseSequenceFields{n};
-            S.sequence.basestimseq = 1;
+            S.sequence.parametername = SequenceFields{n};
+            S.sequence.basestimseq = 0;
             S.sequence.parametervalues = param;
-            eval(['S.basestim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
+            eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
             S.sequence.seq = [1:S.sequence.nseq];
             if S.stim.numberreps == Inf
                 S.sequence.seqIndex =  S.sequence.seq;
             else
-                S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+                if S.stim.randomizesequence == 0
+                    S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+                elseif S.stim.randomizesequence == 1
+                    S.sequence.seqIndex = [];
+                    for r = 1:S.stim.numberreps
+                        rInd = randperm(S.sequence.nseq);
+                        S.sequence.seqIndex =  [S.sequence.seqIndex S.sequence.seq(rInd)];
+                    end
+                end
             end
             hit = 1;
         end
     end
+    
+    if hit == 0 % look for sequence in basestimulus
+        BaseSequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};
+        for n = 1:length(BaseSequenceFields)
+            eval(['param = S.basestim.' BaseSequenceFields{n} ';']);
+            fieldL = length(param);
+            if fieldL>1
+                S.sequence.on = 1;
+                S.sequence.thisseq = 0;
+                S.sequence.loopthisseq = 1;
+                S.sequence.nseq = fieldL;
+                S.sequence.parametername = BaseSequenceFields{n};
+                S.sequence.basestimseq = 1;
+                S.sequence.parametervalues = param;
+                eval(['S.basestim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
+                S.sequence.seq = [1:S.sequence.nseq];
+                if S.stim.numberreps == Inf
+                    S.sequence.seqIndex =  S.sequence.seq;
+                else
+                    S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+                end
+                hit = 1;
+            end
+        end
+    end
+    
+    if hit == 0;
+        S.sequence.on = 0;
+        S.sequence.thisseq = 0;
+        S.sequence.loopthisseq = S.sequence.thisseq;
+        S.sequence.nseq = 0;
+        S.sequence.parametername = '';
+        S.sequence.basestimseq = [];
+        S.sequence.parametervalues = [];
+        S.sequence.data = [];
+        S.sequence.seq = [1:S.sequence.nseq];
+        S.sequence.seqIndex =  S.sequence.seq;
+        S.stim.randomizesequence = 0;
+    end
 end
-
-if hit == 0;
-    S.sequence.on = 0;
-    S.sequence.thisseq = 0;
-    S.sequence.loopthisseq = S.sequence.thisseq;
-    S.sequence.nseq = 0;
-    S.sequence.parametername = '';
-    S.sequence.basestimseq = [];
-    S.sequence.parametervalues = [];
-    S.sequence.data = [];
-    S.sequence.seq = [1:S.sequence.nseq];
-    S.sequence.seqIndex =  S.sequence.seq;
-    S.stim.randomizesequence = 0;
-end
-
 %-------------------------------------------------------------------------
 function NIwriteCurrentStimParam
 global S
@@ -741,8 +744,9 @@ elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle'
     stimDataTrans = stimData;
     
 elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
-    stimData = S.stim.customdata';
-    stimData = S.stim.amplitude*(stimData/max(stimData));
+    %stimData = S.stim.customdata';
+    %stimData = S.stim.amplitude*(stimData/max(stimData));
+    stimData = squeeze(S.stim.customdata(1,:,:));
     stimDataTrans = stimData;
 end
 
@@ -752,13 +756,15 @@ if S.stim.ramp == 1
     stimDataTrans = amplitudeTrans.*stimDataTrans;
 end
 
-if S.basestim.stim == 1;
-    % add base stimulus
-    [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay);
-else
-    % or add zero buffers
-    stimData = [zvec_delay; stimData; zvec];
-    stimDataTrans = [zvec_delay; stimDataTrans; zvec]; 
+if ~strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
+    if S.basestim.stim == 1;
+        % add base stimulus
+        [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay);
+    else
+        % or add zero buffers
+        stimData = [zvec_delay; stimData; zvec];
+        stimDataTrans = [zvec_delay; stimDataTrans; zvec];
+    end
 end
 
 if S.ampblank.on == 1;
@@ -778,35 +784,40 @@ end
 S.stim.data = [];
 S.stim.transitiondata = [];
 
-nD = size(stimData,2);
-if nD == 1
-    for n = 1:S.ni.nchout
-        S.stim.data = [S.stim.data stimData];
-        S.stim.transitiondata = [S.stim.transitiondata stimDataTrans];
-    end
-    if S.trigger.on == 1
-        triggerData = zeros(length(stimData),1);
-        nTrigSamps = round(S.trigger.dur*1e-3*NI.Rate);
-        triggerData(1:nTrigSamps) = S.trigger.amp;
-        S.stim.data(:,1) = triggerData;
-        S.stim.transitiondata(:,1) = triggerData;
-    end
-    if S.ampblank.on == 1;
-        for n = 1:length(S.ampblank.pulsechind)
-            S.stim.data(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;
-            S.stim.transitiondata(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;
-        end
-    end
+if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
+    S.stim.data = stimData;
+    S.stim.transitiondata = stimDataTrans;
 else
-    if S.trigger.on == 1
-        triggerData = zeros(length(stimData),1);
-        nTrigSamps = round(S.trigger.dur*1e-3*NI.Rate);
-        triggerData(1:nTrigSamps) = S.trigger.amp;
-        S.stim.data(:,1) = triggerData;
-        S.stim.transitiondata(:,1) = triggerData;
+    nD = size(stimData,2);
+    if nD == 1
+        for n = 1:S.ni.nchout
+            S.stim.data = [S.stim.data stimData];
+            S.stim.transitiondata = [S.stim.transitiondata stimDataTrans];
+        end
+        if S.trigger.on == 1
+            triggerData = zeros(length(stimData),1);
+            nTrigSamps = round(S.trigger.dur*1e-3*NI.Rate);
+            triggerData(1:nTrigSamps) = S.trigger.amp;
+            S.stim.data(:,1) = triggerData;
+            S.stim.transitiondata(:,1) = triggerData;
+        end
+        if S.ampblank.on == 1;
+            for n = 1:length(S.ampblank.pulsechind)
+                S.stim.data(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;
+                S.stim.transitiondata(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;
+            end
+        end
+    else
+        if S.trigger.on == 1
+            triggerData = zeros(length(stimData),1);
+            nTrigSamps = round(S.trigger.dur*1e-3*NI.Rate);
+            triggerData(1:nTrigSamps) = S.trigger.amp;
+            S.stim.data(:,1) = triggerData;
+            S.stim.transitiondata(:,1) = triggerData;
+        end
+        S.stim.data(:,2:nD+1) = stimData;
+        S.stim.transitiondata(:,2:nD+1) = stimDataTrans;
     end
-    S.stim.data(:,2:nD+1) = stimData;
-    S.stim.transitiondata(:,2:nD+1) = stimDataTrans;
 end
 S.stim.buffersize = length(S.stim.data);
 S.stim.repsplayed = 0;
@@ -820,16 +831,18 @@ sampperrep = round(NI.Rate*(S.stim.burstrepperiod/1000));
 sampperburst = round(NI.Rate*(S.basestim.burstdur/1000));
 nzerosamp = sampperrep-sampperburst;
 
+basestimamplitude = S.basestim.amplitude/S.current.onevoltequalsXmilliamps;
+
 tvec = [1/NI.Rate:1/NI.Rate:sampperburst/S.ni.rate];
 if S.basestim.dc == 0
 if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
     if S.basestim.ampmoddepth == 0
-        baseData = S.basestim.amplitude*sin(2*pi*S.basestim.frequency*tvec + S.basestim.phase*2*pi)';
+        baseData = basestimamplitude*sin(2*pi*S.basestim.frequency*tvec + S.basestim.phase*2*pi)';
         baseDataTrans = baseData;
     elseif S.basestim.ampmoddepth ~= 0
         baseData = [];
-        baseData(:,1) = S.basestim.amplitude*(1-S.basestim.ampmoddepth/100/2)*sin(2*pi*S.basestim.frequency                         *tvec + S.basestim.phase*2*pi)';
-        baseData(:,2) = S.basestim.amplitude*(  S.basestim.ampmoddepth/100/2)*sin(2*pi*(S.basestim.frequency+S.basestim.ampmodfreq) *tvec + S.basestim.phase*2*pi + S.basestim.ampmodphase*2*pi)';
+        baseData(:,1) = basestimamplitude*(1-S.basestim.ampmoddepth/100/2)*sin(2*pi*S.basestim.frequency                         *tvec + S.basestim.phase*2*pi)';
+        baseData(:,2) = basestimamplitude*(  S.basestim.ampmoddepth/100/2)*sin(2*pi*(S.basestim.frequency+S.basestim.ampmodfreq) *tvec + S.basestim.phase*2*pi + S.basestim.ampmodphase*2*pi)';
         baseDataTrans = baseData;
         if S.stim.sameonallchannels == 1 %send both freqs on 1 channel
             baseData = sum(baseData')';
@@ -839,8 +852,8 @@ if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
 end
 elseif S.basestim.dc == 1
     % test DC stim
-    baseData = S.basestim.amplitude*ones(size(tvec'));
-    baseDataTrans = S.basestim.amplitude*ones(size(tvec'));
+    baseData = basestimamplitude*ones(size(tvec'));
+    baseDataTrans = basestimamplitude*ones(size(tvec'));
 end
 
 zvec = zeros(nzerosamp,1);
@@ -885,76 +898,76 @@ S.stim.data = S.sequence.data.stim1;
 function [pulse,charge1,charge2,interpeakgap] = NImakepulse;
 global S NI
 
-sampperphase1 = round(NI.Rate*(S.stim.phase1pulsewidth/1e6));
-samppergap = round(NI.Rate*(S.stim.phasegap/1e6));
-sampperphase2 = round(NI.Rate*(S.stim.phase2pulsewidth/1e6));
+    sampperphase1 = round(NI.Rate*(S.stim.phase1pulsewidth/1e6));
+    samppergap = round(NI.Rate*(S.stim.phasegap/1e6));
+    sampperphase2 = round(NI.Rate*(S.stim.phase2pulsewidth/1e6));
 
-if sampperphase1 < 2 | sampperphase2 < 2
-    disp('WARNING: Pulse width is too low for this sample rate')
-end
+    if sampperphase1 < 2 | sampperphase2 < 2
+        disp('WARNING: Pulse width is too low for this sample rate')
+    end
 
-if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'pulse')
-    part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*ones(sampperphase1,1);
-    part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*ones(sampperphase2,1);
-elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'triangle')
-    widthhalfmax1 = sampperphase1;
-    widthhalfmax2 = sampperphase2;
-    
-    go = 1;
-    while go
-        sampperphase1 = sampperphase1+1;
-        test = fwhm([1:sampperphase1], triang(sampperphase1));
-        if test >= widthhalfmax1;
-            go = 0;
-        end
-    end
-    samppergap = samppergap - (sampperphase1-widthhalfmax1)/2;
-    go = 1;
-    while go
-        sampperphase2 = sampperphase2+1;
-        test = fwhm([1:sampperphase2], triang(sampperphase2));
-        if test >= widthhalfmax1;
-            go = 0;
-        end
-    end
-    samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
-    
-    part1 = S.stim.amplitude*(S.stim.phase1amp/100)*triang(sampperphase1);
-    part2 = S.stim.amplitude*(S.stim.phase2amp/100)*triang(sampperphase2);
-elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'gaussian')
-    widthhalfmax1 = sampperphase1;
-    widthhalfmax2 = sampperphase2;
-    
-    go = 1;
-    while go
-        sampperphase1 = sampperphase1+1;
-        test = fwhm([1:sampperphase1], gausswinzero(sampperphase1));
-        if test >= widthhalfmax1;
-            go = 0;
-        end
-    end
-    samppergap = samppergap - (sampperphase1-widthhalfmax1)/2;
-    go = 1;
-    while go
-        sampperphase2 = sampperphase2+1;
-        test = fwhm([1:sampperphase2], gausswinzero(sampperphase2));
-        if test >= widthhalfmax1;
-            go = 0;
-        end
-    end
-    samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
-    
-    part1 = S.stim.amplitude*(S.stim.phase1amp/100)*gausswinzero(sampperphase1);
-    part2 = S.stim.amplitude*(S.stim.phase2amp/100)*gausswinzero(sampperphase2);
-end
+    if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'pulse')
+        part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*ones(sampperphase1,1);
+        part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*ones(sampperphase2,1);
+    elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'triangle')
+        widthhalfmax1 = sampperphase1;
+        widthhalfmax2 = sampperphase2;
 
-charge1 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part1)*(1/S.ni.rate); % charge in microC
-charge2 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part2)*(1/S.ni.rate);
-interpeakgap = (sampperphase1/2 + samppergap + sampperphase2/2)/S.ni.rate * 1e6;
+        go = 1;
+        while go
+            sampperphase1 = sampperphase1+1;
+            test = fwhm([1:sampperphase1], triang(sampperphase1));
+            if test >= widthhalfmax1;
+                go = 0;
+            end
+        end
+        samppergap = samppergap - (sampperphase1-widthhalfmax1)/2;
+        go = 1;
+        while go
+            sampperphase2 = sampperphase2+1;
+            test = fwhm([1:sampperphase2], triang(sampperphase2));
+            if test >= widthhalfmax1;
+                go = 0;
+            end
+        end
+        samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
 
-pulse = [part1; zeros(samppergap,1); part2];
-pulseperiod = 1/S.stim.frequency;
-sampperpulse = round(NI.Rate*pulseperiod);
+        part1 = S.stim.amplitude*(S.stim.phase1amp/100)*triang(sampperphase1);
+        part2 = S.stim.amplitude*(S.stim.phase2amp/100)*triang(sampperphase2);
+    elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'gaussian')
+        widthhalfmax1 = sampperphase1;
+        widthhalfmax2 = sampperphase2;
+
+        go = 1;
+        while go
+            sampperphase1 = sampperphase1+1;
+            test = fwhm([1:sampperphase1], gausswinzero(sampperphase1));
+            if test >= widthhalfmax1;
+                go = 0;
+            end
+        end
+        samppergap = samppergap - (sampperphase1-widthhalfmax1)/2;
+        go = 1;
+        while go
+            sampperphase2 = sampperphase2+1;
+            test = fwhm([1:sampperphase2], gausswinzero(sampperphase2));
+            if test >= widthhalfmax1;
+                go = 0;
+            end
+        end
+        samppergap = samppergap - (sampperphase2-widthhalfmax2)/2;
+
+        part1 = S.stim.amplitude*(S.stim.phase1amp/100)*gausswinzero(sampperphase1);
+        part2 = S.stim.amplitude*(S.stim.phase2amp/100)*gausswinzero(sampperphase2);
+    end
+
+    charge1 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part1)*(1/S.ni.rate); % charge in microC
+    charge2 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part2)*(1/S.ni.rate);
+    interpeakgap = (sampperphase1/2 + samppergap + sampperphase2/2)/S.ni.rate * 1e6;
+
+    pulse = [part1; zeros(samppergap,1); part2];
+    pulseperiod = 1/S.stim.frequency;
+    sampperpulse = round(NI.Rate*pulseperiod);
 
 zerosamps = sampperpulse-length(pulse);
 if zerosamps < 0
@@ -1406,12 +1419,55 @@ S.stim.stimdir = [S.stim.stimdir '\'];
 set(S.stim.custombut,'String',S.stim.customfilename)
 
 load([S.stim.stimdir S.stim.customfilename])
-S.stim.customdata = resample(A.stim,1,A.fs/NI.Rate);
-set(S.stim.burstdurbut,'String',(length(S.stim.customdata)/NI.Rate)*1e3);
-set(S.stim.burstrepperiodbut,'String',2*(length(S.stim.customdata)/NI.Rate)*1e3);
+if A.fs ~= NI.Rate
+    S.stim.customdata = resample(A.stim.data,1,A.fs/NI.Rate);
+else
+    S.stim.customdata = A.stim.data;
+end
+nCD = length(S.stim.customdata);
+set(S.stim.burstdurbut,'String',(nCD/NI.Rate)*1e3);
+set(S.stim.burstrepperiodbut,'String',(nCD/NI.Rate)*1e3);
+if isfield(A,'sequence')
+    set(S.stim.numberrepsbut,'String',num2str(A.stim.numberreps));
+    S.stim.randomizesequence = A.stim.randomizesequence;
+end
+
+%S.stim.ramp = 0;
+%S.stim.continuous = 0;
+S.basestim.stim = 0;
 NIparseStimGUI
 
-sound(S.stim.customdata,NI.Rate)
+if isfield(A,'sequence') 
+    S.sequence.on = A.sequence.on;
+    S.sequence.thisseq = 0;
+    S.sequence.loopthisseq = 1;
+    S.sequence.nseq = A.sequence.nseq;
+    S.sequence.parametername = A.sequence.parametername;
+    S.sequence.basestimseq = 0;
+    S.sequence.parametervalues = A.sequence.parametervalues;
+    S.sequence.seq = [1:S.sequence.nseq];
+    if S.stim.numberreps == Inf
+        S.sequence.seqIndex =  S.sequence.seq;
+    else
+        if S.stim.randomizesequence == 0
+            S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+        elseif S.stim.randomizesequence == 1
+            S.sequence.seqIndex = [];
+            for r = 1:S.stim.numberreps
+                rInd = randperm(S.sequence.nseq);
+                S.sequence.seqIndex =  [S.sequence.seqIndex S.sequence.seq(rInd)];
+            end
+        end
+    end
+    for n = 1:S.sequence.nseq
+        eval(['S.sequence.data.stim' num2str(n) '  = squeeze(S.stim.customdata(n,:,:));']);
+    end
+end
+
+if isfield(A,'trigger')
+    S.trigger.on = A.trigger.on;
+end
+%sound(S.stim.customdata,NI.Rate)
 
 %--------------------------------------------------------------------------
 function NIpulsewidth
