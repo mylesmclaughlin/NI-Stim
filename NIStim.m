@@ -1500,10 +1500,13 @@ if sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle','ga
     else
         figure(pf)
     end
-    plot([0:length(pulse)-1]/S.ni.rate * 1e6,pulse,'.-')
+    plot([1/S.ni.rate:1/S.ni.rate:length(pulse)/S.ni.rate]*1e6,pulse,'.-')
     hold on
+    assignin('base','pulse',pulse)
+    assignin('base','time',[1/S.ni.rate:1/S.ni.rate:length(pulse)/S.ni.rate]*1e6)
+    
     if S.ampblank.on == 1;
-        plot([0:length(pulse)-1]/S.ni.rate * 1e6,S.ampblank.singlepulse,'r')
+        plot([1/S.ni.rate:1/S.ni.rate:length(pulse)/S.ni.rate]*1e6,S.ampblank.singlepulse,'r')
     end
     xlabel('Time (\muS)')
     xlim([0 2*(S.stim.phase1pulsewidth + S.stim.phase2pulsewidth + S.stim.phasegap)])
