@@ -18,7 +18,7 @@ end
 
 % Set fixed variables for easy modification
 numberreps = 1;
-ampRange = [2.8 3 3.2];
+ampRange = [4 4.15 4.3];
 freq = 300;
 burstdur = 100;
 burstrepperiod = 2000;
@@ -27,11 +27,11 @@ phase1pulsewidth = 200;
 phase2pulsewidth = 200;
 
 subthresAmp = 0.3;
-subthresFreq = 1;
-subthresCar = freq;
+subthresFreq = 2;
+
 subthresAmpModDepth = 0;
 
-delay = [0 0 0 0:0.25:1.0000]
+delay = [0 0:0.125:1.0000]
 
 %% --Setup stimulation variables in a struct array --
 
@@ -85,56 +85,13 @@ M(n).basestim.phase2amp = -100;
 M(n).basestim.phasegap = 0;
 M(n).basestim.waveformindex = 1;
 
-% DC neg
-n=n+1;
-M(n).stim.seqname = ['dcneg']; %
-M(n).stim.burstdelay = 0; 
-M(n).basestim.stim = 1;
-M(n).basestim.amplitude = -subthresAmp;
-M(n).basestim.frequency = subthresFreq;
-M(n).basestim.phase = 0;
-M(n).basestim.burstdur = burstrepperiod;
-M(n).basestim.dc = 1;
-M(n).basestim.ampmoddepth = 0;
-M(n).basestim.ampmodfreq = 5;
-M(n).basestim.ampmodphase = 0.5;
-M(n).basestim.waveformindex = 1;
-M(n).basestim.phase1pulsewidth = 50;
-M(n).basestim.phase2pulsewidth = 50;
-M(n).basestim.phase1amp = 100;
-M(n).basestim.phase2amp = -100;
-M(n).basestim.phasegap = 0;
-M(n).basestim.waveformindex = 1;
-
-% DC pos stim
-n=n+1;
-M(n).stim.seqname = ['dcpos']; %
-M(n).stim.burstdelay = 0; 
-M(n).basestim.stim = 1;
-M(n).basestim.amplitude = subthresAmp;
-M(n).basestim.frequency = subthresFreq;
-M(n).basestim.phase = 0;
-M(n).basestim.burstdur = burstrepperiod;
-M(n).basestim.dc = 1;
-M(n).basestim.ampmoddepth = 0;
-M(n).basestim.ampmodfreq = 5;
-M(n).basestim.ampmodphase = 0.5;
-M(n).basestim.waveformindex = 1;
-M(n).basestim.phase1pulsewidth = 50;
-M(n).basestim.phase2pulsewidth = 50;
-M(n).basestim.phase1amp = 100;
-M(n).basestim.phase2amp = -100;
-M(n).basestim.phasegap = 0;
-M(n).basestim.waveformindex = 1;
-
-
 % Single Frequency subthreshold stimulus
 
 
 %delay = [0 2/8 3/8 4/8 5/8 6/8];
 %delay = [0 0.2500    0.3750    0.5000    0.6250    0.7500    0.8750    1.0000];
 
-for n = 4:length(delay)
+for n = 2:length(delay)
     M(n).stim.seqname = ['singlefreq' num2str(delay(n))]; %
     
     % delay normal stimulus
