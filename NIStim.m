@@ -308,11 +308,10 @@ if S.proc.proc == 1
 end
 
 % Queue zero data
-holdbuffer = S.stim.data;
-S.stim.data = zeros(size(S.stim.data));
+%holdbuffer = S.stim.data;
+%S.stim.data = zeros(size(S.stim.data));
 queueOutputData(NI,S.stim.data);
 queueOutputData(NI,S.stim.data);
-
 
 % Start NI card
 NI.startBackground();
@@ -327,7 +326,7 @@ end
 
 % Queue stim data
 S.stim.starttime = datestr(now);
-S.stim.data = holdbuffer;
+%S.stim.data = holdbuffer;
 
 % Update GUI
 set(S.stim.startbut,'String','Stop Stim','Callback','NIStim(''stopStim'')','backgroundcolor',[1 0 0])
@@ -400,7 +399,8 @@ holdbuffer = S.stim.data;
 S.stim.data = zeros(size(S.stim.data));
 bufferDur = S.stim.buffersize/NI.Rate;
 queueOutputData(NI,zeros(size(S.stim.data))); % just added 02/02/2016 - TEST
-pause(bufferDur*2)
+%pause(bufferDur*2)
+pause(2)
 
 % Disable current source
 if S.current.present == 1
@@ -1523,7 +1523,7 @@ if S.stim.frequency > NI.Rate/2
 end
 
 % adjust stim freq to give exact value base on number of samples per period
-S.stim.frequency = NI.Rate/round(NI.Rate/S.stim.frequency);
+S.stim.frequency = round(NI.Rate)/round(NI.Rate/S.stim.frequency);
 set(S.stim.freqbut,'String',num2str(S.stim.frequency));
         
 

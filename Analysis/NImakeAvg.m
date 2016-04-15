@@ -16,7 +16,7 @@ A.repDur = N.stim.burstdur;
 A.burstrepperiod = N.stim.burstrepperiod;
 
 % load bin file
-extraTime = 100;
+extraTime = 5000; %100;
 sampWin = [-extraTime A.burstrepperiod]; %A.repDur+extraTime]; % ms
 D = binread(binFile);
 sInd = strfind(D.header,'Fs=');
