@@ -308,10 +308,14 @@ if S.proc.proc == 1
 end
 
 % Queue zero data
-%holdbuffer = S.stim.data;
-%S.stim.data = zeros(size(S.stim.data));
-queueOutputData(NI,S.stim.data);
-queueOutputData(NI,S.stim.data);
+holdbuffer = S.stim.data;
+S.stim.data = zeros(size(S.stim.data));
+%if S.stim.buffersize/S.ni.rate<10;
+    queueOutputData(NI,S.stim.data);
+    queueOutputData(NI,S.stim.data);
+%else
+%    queueOutputData(NI,S.stim.data);
+%end
 
 % Start NI card
 NI.startBackground();
@@ -326,7 +330,7 @@ end
 
 % Queue stim data
 S.stim.starttime = datestr(now);
-%S.stim.data = holdbuffer;
+S.stim.data = holdbuffer;
 
 % Update GUI
 set(S.stim.startbut,'String','Stop Stim','Callback','NIStim(''stopStim'')','backgroundcolor',[1 0 0])
@@ -399,8 +403,7 @@ holdbuffer = S.stim.data;
 S.stim.data = zeros(size(S.stim.data));
 bufferDur = S.stim.buffersize/NI.Rate;
 queueOutputData(NI,zeros(size(S.stim.data))); % just added 02/02/2016 - TEST
-%pause(bufferDur*2)
-pause(2)
+pause(bufferDur*2)
 
 % Disable current source
 if S.current.present == 1
@@ -744,9 +747,8 @@ elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle'
     stimDataTrans = stimData;
     
 elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
-    %stimData = S.stim.customdata';
-    %stimData = S.stim.amplitude*(stimData/max(stimData));
     stimData = squeeze(S.stim.customdata(1,:,:));
+    stimData(:,2) = S.stim.amplitude*(stimData(:,2)/max(stimData(:,2)));
     stimDataTrans = stimData;
 end
 

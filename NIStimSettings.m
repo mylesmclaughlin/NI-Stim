@@ -45,7 +45,7 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.chin = [0 1 2 3 4 5];
     S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'};% {'Current','Voltage','Trigger','X','Y','MeasEl'};%
     S.ni.chout = [0 1];
-    S.ni.rate = 1024; % 10e3; % 
+    S.ni.rate = 60e3; %1024; % 10e3; % 
     S.ni.voltrange =  [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
@@ -53,7 +53,7 @@ elseif strcmp(S.ni.description,'National Instruments USB-6343')
     S.ni.chin =  [1 2 3 5]; %[1 2 3 18 19 22];    %     [1 2]; %    %[1 2 3]; %  %[18 19 22 23]; % %  % % %
     S.ni.chilabel = {'BST','Non-BST','Trigger','Stim Voltage'}; %{'Current','Voltage','Trigger','X','Y','Z'}; % {'Current','Voltage'}; % 
     S.ni.chout = [0 1 2 3]; % 0 out is always trigger
-    S.ni.rate = 20e3; %200e3; %
+    S.ni.rate = 200e3; %20e3; %200e3; %
     S.ni.voltrange =  [-10 10; -10 10; -10 10; -10 10]; %[-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;]; % [-1 1; -10 10];% [-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','SingleEnded'}; %%{'Differential','Differential','Differential'}; % %{'SingleEnded','Differential','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded'};
 elseif strcmp(S.ni.description,'no device')

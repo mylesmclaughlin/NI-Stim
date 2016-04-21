@@ -1,4 +1,4 @@
-function data = accel2disp(data,fs);
+function data = accel3disp(data,fs);
 
 % filter
 S.ni.rate = fs;
