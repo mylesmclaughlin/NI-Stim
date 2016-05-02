@@ -3,7 +3,8 @@ function [D,S] = quickSpecComp(fileName)
 load(fileName)
 D.tvec = [1:length(D.data)]/D.fs;
 
-[b,a] = butter(2,[3 500]/(D.fs/2),'bandpass');
+[b,a] = butter(2,[2 500]/(D.fs/2),'bandpass');
+%[b,a] = butter(2,500/(D.fs/2),'low');
 D.data(:,1) = filter(b,a,D.data(:,1));
 D.data(:,2) = filter(b,a,D.data(:,2));
 
@@ -16,7 +17,7 @@ sigOff = D.data(indOff,:);
 window = D.fs;
 noverlap = window*0.75;
 nfft = 2^nextpow2(window)*2;
-flim = [0 30];
+flim = [0 100];
 
 
 figure

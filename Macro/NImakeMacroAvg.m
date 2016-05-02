@@ -108,7 +108,7 @@ end
 
 
 % experiment specific sorting of results
-sortList = {'BP','IPG','PM','TRI','GAUS'};
+sortList = {'BP','PM','IPG','TRI','GAUS'};
 sum(strcmpi(A(1).macro,sortList))
 if sum(strcmpi(A(1).macro,sortList))
     for n = 1:length(sortList)
@@ -118,9 +118,15 @@ if sum(strcmpi(A(1).macro,sortList))
     A = newA;
 end
 
+
+
 if strfind(A(1).macro,'IPG');
     for n = 1:length(A)
-        ipg(n) = str2num(A(n).macro(4:end));
+        if strfind(A(n).macro,'PM');
+             ipg(n) = str2num(A(n).macro(6:end));
+        else
+            ipg(n) = str2num(A(n).macro(4:end));
+        end
     end
     [s,sind] = sort(ipg);
     A = A(sind);
@@ -138,29 +144,29 @@ end
 %     A = A(sind);
 % end
 
-if isempty(strfind(A(1).macro,'singlefreq')) | isempty(strfind(A(1).macro,'baseline')) | isempty(strfind(A(1).macro,'dcpos')) | isempty(strfind(A(1).macro,'dcneg'))
-    for n = 1:length(A)
-        if strfind(A(n).macro,'singlefreq')
-            phase(n) = str2num(A(n).macro(11:end));
-            if phase(n)>1 & phase(n)<10
-                phase(n) = phase(n)/10;
-            elseif phase(n)>10 & phase(n)<100
-                phase(n) = phase(n)/100;
-            elseif phase(n)>100 & phase(n)<1000
-                phase(n) = phase(n)/1000;
-            end
-        elseif strfind(A(n).macro,'baseline')
-            phase(n) = -1;
-        elseif strfind(A(n).macro,'dcpos')
-            phase(n) = -2;
-        elseif strfind(A(n).macro,'dcneg')
-            phase(n) = -3;
-        end
-        A(n).phase = phase(n);
-    end
-    [s,sind] = sort(phase);
-    A = A(sind);
-end
+% if isempty(strfind(A(1).macro,'singlefreq')) | isempty(strfind(A(1).macro,'baseline')) | isempty(strfind(A(1).macro,'dcpos')) | isempty(strfind(A(1).macro,'dcneg'))
+%     for n = 1:length(A)
+%         if strfind(A(n).macro,'singlefreq')
+%             phase(n) = str2num(A(n).macro(11:end));
+%             if phase(n)>1 & phase(n)<10
+%                 phase(n) = phase(n)/10;
+%             elseif phase(n)>10 & phase(n)<100
+%                 phase(n) = phase(n)/100;
+%             elseif phase(n)>100 & phase(n)<1000
+%                 phase(n) = phase(n)/1000;
+%             end
+%         elseif strfind(A(n).macro,'baseline')
+%             phase(n) = -1;
+%         elseif strfind(A(n).macro,'dcpos')
+%             phase(n) = -2;
+%         elseif strfind(A(n).macro,'dcneg')
+%             phase(n) = -3;
+%         end
+%         A(n).phase = phase(n);
+%     end
+%     [s,sind] = sort(phase);
+%     A = A(sind);
+% end
 
 % if strfind(A(1).macro,'dc')
 %     for n = 1:length(A)

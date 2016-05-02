@@ -745,10 +745,47 @@ elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','triangle'
         stimData = S.stim.amplitude*stimData/max(stimData);
     end
     stimDataTrans = stimData;
+elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse-series','triangle-series','gaussian-series'}))
+    
+    pulse = NImakepulse;
+    
+    % check that pulse is charge balanced
+    cb = abs(sum(pulse));
+    if cb>0.000001
+        disp('Pulse is not charge balanced')
+        pulse = zeros(size(pulse));
+    end
+    nReps = round(sampperburst/length(pulse));
+    %round(S.stim.sampperperiod/length(pulse));
+    pulseTrain = repmat(pulse,nReps,1);
+    pulseTrain  = pulseTrain /max(pulseTrain );
+    
+    %stimDataTrans = repmat(pulse,nReps,1);
+    if S.ampblank.on == 1;
+        S.ampblank.pulsetrain = repmat(S.ampblank.singlepulse,nReps,1);
+    end
+    
+    sampperseries = round(NI.Rate*(S.stim.series.burstrepperiod/1000)); 
+    seriesvec = zeros(sampperseries,1);
+    stimData = [];
+    for n = 1:length(S.stim.series.amplitude)
+        locStimData = seriesvec;
+        locStimData(1:length(pulseTrain)) = (S.stim.series.amplitude(n)/S.current.onevoltequalsXmilliamps) * pulseTrain; 
+        stimPulseSeriesInd(1,n) = length(stimData)+1;
+        stimPulseSeriesInd(2,n) = stimPulseSeriesInd(1,n) + length(pulseTrain);
+        stimData = [stimData; locStimData];
+    end
+    
+    stimDataTrans = stimData;
     
 elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
     stimData = squeeze(S.stim.customdata(1,:,:));
-    stimData(:,2) = S.stim.amplitude*(stimData(:,2)/max(stimData(:,2)));
+    if S.ni.nchout > 1
+        stimData(:,2) = S.stim.amplitude*(stimData(:,2)/max(stimData(:,2)));
+    else
+        stimData = stimData';
+        stimData(:,1) = S.stim.amplitude*(stimData(:,1)/max(stimData(:,1)));
+    end
     stimDataTrans = stimData;
 end
 
@@ -761,7 +798,8 @@ end
 if ~strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
     if S.basestim.stim == 1;
         % add base stimulus
-        [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay);
+        if ~exist('stimPulseSeriesInd','var'); stimPulseSeriesInd = []; end
+        [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay,stimPulseSeriesInd);
     else
         % or add zero buffers
         stimData = [zvec_delay; stimData; zvec];
@@ -826,7 +864,7 @@ S.stim.repsplayed = 0;
 set(S.stim.repsplayedbut,'String',['rep ' num2str(S.stim.repsplayed)]);
 
 %-------------------------------------------------------------------------
-function [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay);
+function [stimData,stimDataTrans] = NIaddBaseStim(stimData,stimDataTrans,zvec_delay,stimPulseSeriesInd);
 global S NI
 
 sampperrep = round(NI.Rate*(S.stim.burstrepperiod/1000));
@@ -837,21 +875,21 @@ basestimamplitude = S.basestim.amplitude/S.current.onevoltequalsXmilliamps;
 
 tvec = [1/NI.Rate:1/NI.Rate:sampperburst/S.ni.rate];
 if S.basestim.dc == 0
-if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
-    if S.basestim.ampmoddepth == 0
-        baseData = basestimamplitude*sin(2*pi*S.basestim.frequency*tvec + S.basestim.phase*2*pi)';
-        baseDataTrans = baseData;
-    elseif S.basestim.ampmoddepth ~= 0
-        baseData = [];
-        baseData(:,1) = basestimamplitude*(1-S.basestim.ampmoddepth/100/2)*sin(2*pi*S.basestim.frequency                         *tvec + S.basestim.phase*2*pi)';
-        baseData(:,2) = basestimamplitude*(  S.basestim.ampmoddepth/100/2)*sin(2*pi*(S.basestim.frequency+S.basestim.ampmodfreq) *tvec + S.basestim.phase*2*pi + S.basestim.ampmodphase*2*pi)';
-        baseDataTrans = baseData;
-        if S.stim.sameonallchannels == 1 %send both freqs on 1 channel
-            baseData = sum(baseData')';
-            baseDataTrans = sum(baseDataTrans')';
+    if strcmpi(S.stim.waveformlist(S.basestim.waveformindex),'sine')
+        if S.basestim.ampmoddepth == 0
+            baseData = basestimamplitude*sin(2*pi*S.basestim.frequency*tvec + S.basestim.phase*2*pi)';
+            baseDataTrans = baseData;
+        elseif S.basestim.ampmoddepth ~= 0
+            baseData = [];
+            baseData(:,1) = basestimamplitude*(1-S.basestim.ampmoddepth/100/2)*sin(2*pi*S.basestim.frequency                         *tvec + S.basestim.phase*2*pi)';
+            baseData(:,2) = basestimamplitude*(  S.basestim.ampmoddepth/100/2)*sin(2*pi*(S.basestim.frequency+S.basestim.ampmodfreq) *tvec + S.basestim.phase*2*pi + S.basestim.ampmodphase*2*pi)';
+            baseDataTrans = baseData;
+            if S.stim.sameonallchannels == 1 %send both freqs on 1 channel
+                baseData = sum(baseData')';
+                baseDataTrans = sum(baseDataTrans')';
+            end
         end
     end
-end
 elseif S.basestim.dc == 1
     % test DC stim
     baseData = basestimamplitude*ones(size(tvec'));
@@ -865,7 +903,17 @@ baseDataTrans = [baseDataTrans; zvec];
 S.basestim.data = baseData;
 S.basestim.transitiondata = baseDataTrans;
 
-stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
+if isempty(stimPulseSeriesInd)
+    stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
+    baseData(stimInd) = stimData;
+    baseDataTrans(stimInd) = stimDataTrans;
+else
+    nDelay = length(zvec_delay);
+    for n = 1:length(stimPulseSeriesInd)
+        baseData(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = stimData(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+        baseDataTrans(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = stimDataTrans(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+    end
+end
 
 % make stim float on top of base data
 % baseData(stimInd) = baseData(stimInd(1));
@@ -873,9 +921,6 @@ stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
 % baseDataTrans(stimInd) = baseDataTrans(stimInd(1));
 % baseDataTrans(stimInd) = baseDataTrans(stimInd) + stimDataTrans;
 
-% make stim zero centered
-baseData(stimInd) = stimData;
-baseDataTrans(stimInd) = stimDataTrans;
 
 stimData = baseData;
 stimDataTrans = baseDataTrans;
@@ -908,10 +953,10 @@ global S NI
         disp('WARNING: Pulse width is too low for this sample rate')
     end
 
-    if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'pulse')
+    if sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse','pulse-series'})) 
         part1 =  S.stim.amplitude*(S.stim.phase1amp/100)*ones(sampperphase1,1);
         part2 =  S.stim.amplitude*(S.stim.phase2amp/100)*ones(sampperphase2,1);
-    elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'triangle')
+    elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'triangle','triangle-series'}))
         widthhalfmax1 = sampperphase1;
         widthhalfmax2 = sampperphase2;
 
@@ -936,7 +981,7 @@ global S NI
 
         part1 = S.stim.amplitude*(S.stim.phase1amp/100)*triang(sampperphase1);
         part2 = S.stim.amplitude*(S.stim.phase2amp/100)*triang(sampperphase2);
-    elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'gaussian')
+    elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'gaussian','gaussian-series'}))
         widthhalfmax1 = sampperphase1;
         widthhalfmax2 = sampperphase2;
 
@@ -1464,6 +1509,10 @@ if isfield(A,'sequence')
     for n = 1:S.sequence.nseq
         eval(['S.sequence.data.stim' num2str(n) '  = squeeze(S.stim.customdata(n,:,:));']);
     end
+end
+
+if S.ni.nchout<2
+    S.stim.customdata = S.stim.customdata(:,:,2);
 end
 
 if isfield(A,'trigger')

@@ -1,10 +1,25 @@
 function A = pulsedSine(pulsewidth,pulserate,sinfreq,duration,fs)
 
+if length(duration)==2
+    totaldur = duration(2);
+    duration = duration(1);
+    addzero = 1;
+else
+    addzero = 0;
+end
 pulse = makePulse(pulsewidth*1e6,0,1,pulserate,fs);
 pulseTrain = makePulseTrain(pulse,duration*1e3,fs);
 tvec = [1/fs:1/fs:duration]';
 sinwave = sin(2*pi*sinfreq*tvec);
 sig = sinwave.*pulseTrain;
+
+if addzero
+    totalsamp = totaldur*fs
+    zvec = zeros(totalsamp,1);
+    zvec(1:length(sig)) = sig;
+    sig = zvec;
+    tvec = [1/fs:1/fs:totaldur]';
+end
 
 triggerdur = 10; % ms
 triggeramp = 1;
@@ -13,10 +28,11 @@ nTrigSamps = round(triggerdur*1e-3*fs);
 trigger(1:nTrigSamps) = triggeramp;
 
 figure
-plot(tvec,sinwave,'r')
-hold on
-plot(tvec,pulseTrain,'k')
+%plot(tvec,sinwave,'r')
+%hold on
+%plot(tvec,pulseTrain,'k')
 plot(tvec,sig,'b')
+hold on
 plot(tvec,trigger,'m')
 
 A.fs = fs;

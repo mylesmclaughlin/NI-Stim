@@ -116,7 +116,6 @@ ylabel('Displacement Y')
 box off
 set(gca,'tickdir','out')
 
-
 subplot(1,3,3)
 for n = 1:np
     %plot(P.ampVec,P.respAmpZ(n,:),copo{n})

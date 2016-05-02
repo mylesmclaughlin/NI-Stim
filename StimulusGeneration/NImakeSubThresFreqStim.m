@@ -53,7 +53,6 @@ filename = ['SubAmp=' num2str(subthresAmp) '_SupAmp=' num2str(supthresAmp) '_sub
 disp(['Saving ' pathname filename])
 save([pathname filename],'A')
 
-
 %--------------------------------------------------------------------------
 function [data,trigger] = addPulseStim(data,pulseTrain,burstrepperiod,subthresFreq,phase,nprobes,fs);
 

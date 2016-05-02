@@ -64,6 +64,11 @@ set(S.stim.phase2ampbut,'string',num2str(P.stim.phase2amp));
 set(S.stim.phasegapbut,'string',num2str(P.stim.phasegap));
 S.stim.randomizesequence = P.stim.randomizesequence;
 
+if isfield(P.stim,'series')
+    S.stim.series.amplitude = P.stim.series.amplitude;
+    S.stim.series.burstrepperiod = P.stim.series.burstrepperiod;
+end
+
 if isfield(P,'basestim')
       % delay normal stimulus
         S.stim.burstdelay = P.stim.burstdelay;
