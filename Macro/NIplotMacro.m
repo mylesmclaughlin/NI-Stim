@@ -4,7 +4,7 @@ if nargin<2
     phaseplot = 0;
 end
 
-sortFreq = 0;
+sortFreq = 1;
 if sortFreq
     for n = 1:length(Ain)
         freq(n) = Ain(n).frequency;
@@ -164,49 +164,49 @@ if phaseplot
 end
 
 
-% if sortFreq
-%     % Plotting frequency as function of amplitude
-%
-%     figure('position',[15         127        1342         420]);
-%     subplot(1,3,1)
-%     for n = 1:nq
-%         %plot(P.ampVec,P.respAmpX(n,:),copo{n})
-%         errorbar(P.freqVec,P.respAmpX(:,n),P.respSTDX(:,n),copo{n})
-%         hold on
-%     end
-%     xlabel('Freq (Hz)')
-%     ylabel('Displacement X')
-%     box off
-%     set(gca,'tickdir','out')
-%
-%     subplot(1,3,2)
-%     for n = 1:nq
-%         %plot(P.ampVec,P.respAmpY(n,:),copo{n})
-%         errorbar(P.freqVec,P.respAmpY(:,n),P.respSTDY(:,n),copo{n})
-%         hold on
-%     end
-%     xlabel('Freq (Hz)')
-%     ylabel('Displacement Y')
-%     box off
-%     set(gca,'tickdir','out')
-%
-%
-%     subplot(1,3,3)
-%     for n = 1:nq
-%         %plot(P.ampVec,P.respAmpZ(n,:),copo{n})
-%         errorbar(P.freqVec,P.respAmpZ(:,n),P.respSTDZ(:,n),copo{n})
-%         hold on
-%     end
-%     xlabel('Freq (Hz)')
-%     ylabel('Displacement Z')
-%     box off
-%     set(gca,'tickdir','out')
-%
-%     for kk=1:length(P.ampVec)
-%         leg(kk)=strcat({num2str(P.ampVec(kk))},' ma');
-%     end
-%     legend(leg)
-%
-% end
-%
-%
+if sortFreq
+    % Plotting frequency as function of amplitude
+
+    figure('position',[15         127        1342         420]);
+    subplot(1,3,1)
+    for n = 1:nq
+        %plot(P.ampVec,P.respAmpX(n,:),copo{n})
+        errorbar(P.freqVec,P.respAmpX(:,n),P.respSTDX(:,n),copo{n})
+        hold on
+    end
+    xlabel('Freq (Hz)')
+    ylabel('Displacement X')
+    box off
+    set(gca,'tickdir','out')
+
+    subplot(1,3,2)
+    for n = 1:nq
+        %plot(P.ampVec,P.respAmpY(n,:),copo{n})
+        errorbar(P.freqVec,P.respAmpY(:,n),P.respSTDY(:,n),copo{n})
+        hold on
+    end
+    xlabel('Freq (Hz)')
+    ylabel('Displacement Y')
+    box off
+    set(gca,'tickdir','out')
+
+
+    subplot(1,3,3)
+    for n = 1:nq
+        %plot(P.ampVec,P.respAmpZ(n,:),copo{n})
+        errorbar(P.freqVec,P.respAmpZ(:,n),P.respSTDZ(:,n),copo{n})
+        hold on
+    end
+    xlabel('Freq (Hz)')
+    ylabel('Displacement Z')
+    box off
+    set(gca,'tickdir','out')
+
+    for kk=1:length(P.ampVec)
+        leg(kk)=strcat({num2str(P.ampVec(kk))},' ma');
+    end
+    legend(leg)
+
+end
+
+

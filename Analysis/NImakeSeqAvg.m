@@ -19,6 +19,7 @@ end
 N = N.D;
 A.repDur = N.stim.burstdur;
 A.burstrepperiod = N.stim.burstrepperiod;
+A.macroFile = [p '\' f '.NISmacro'];
 
 %load bin file
 extraTime = 100;
@@ -149,4 +150,7 @@ elseif strcmp(A.seqparametername,'ampmoddepth')
     A.amfreq = N.stim.ampmodfreq;
 end
 
-
+if exist(A.macroFile,'file')
+    disp('Converting to macro avg format')
+    A = NIseries2macro(A);
+end

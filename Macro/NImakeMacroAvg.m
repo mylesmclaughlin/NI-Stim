@@ -132,17 +132,18 @@ if strfind(A(1).macro,'IPG');
     A = A(sind);
 end
 
-% if strfind(A(1).macro,'TACSfreq');
-%     for n = 1:length(A)
-%         st = A(n).macro(9:end);
-%         if ~isempty(strmatch(st(1),'0'))
-%             st = [st(1) '.' st(2)];
-%         end
-%         tacsfreq(n) = str2num(st);
-%     end
-%     [s,sind] = sort(tacsfreq);
-%     A = A(sind);
-% end
+if strfind(A(1).macro,'TACSfreq');
+    for n = 1:length(A)
+        st = A(n).macro(9:end);
+        if ~isempty(strmatch(st(1),'0'))
+            st = [st(1) '.' st(2)];
+        end
+        tacsfreq(n) = str2num(st);
+        A(n).frequency = tacsfreq(n);
+    end
+    [s,sind] = sort(tacsfreq);
+    A = A(sind);
+end
 
 % if isempty(strfind(A(1).macro,'singlefreq')) | isempty(strfind(A(1).macro,'baseline')) | isempty(strfind(A(1).macro,'dcpos')) | isempty(strfind(A(1).macro,'dcneg'))
 %     for n = 1:length(A)

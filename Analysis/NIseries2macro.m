@@ -1,5 +1,9 @@
 function newA = NIseries2macro(A,macroFile)
 
+if nargin<2
+    macroFile = A.macroFile;
+end
+
 load(macroFile,'-mat')
 repperiod = P.stim.series.burstrepperiod;
 amplitude = P.stim.series.amplitude;

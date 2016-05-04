@@ -16,12 +16,12 @@ phase1pulsewidth = 200;
 phase2pulsewidth = 200;
 
 % sub thres params
-subthresAmp = 1;
-subthresFreq = [0.25 0.5 1 2 4 8 16 32 64]; %[0.25 0.5 0.75 1 2 3 4 6 8]; %
+subthresAmp = 0.5;
+subthresFreq = [1 2 4 8 16 32 64 128 256]; %[0.25 0.5 0.75 1 2 3 4 6 8]; %
 nseq = length(subthresFreq);
 phase = 0.25;
-subDurOn = 6; %12;
-subDurOff = 4; %8;
+subDurOn = 2; %12;
+subDurOff = 1; %8;
 randomize = 0;
 nprobe = floor(subDurOn/(burstrepperiod/1000));
 

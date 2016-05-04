@@ -1,30 +1,30 @@
-function P = NIStimPreset_tACS_NetworkTemporalDynamics
+function P = NIStimPreset_tACS_FreqResp
 
 
 %% - Setup the marco struture -
 
 % Setup the macro variables
-P.preset.basefilename = 'RatTACSNetTempDynam-'; % set base file name
+P.preset.basefilename = 'RatTACSFreqResp-'; % set base file name
 P.preset.basefilename = [P.preset.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
 P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only;
 
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = 0.1;
-subThresFreq = [0.5 1 2 4 8 16 32 64];
+subThresAmp = 0.5;
+subThresFreq = [1 2 4 8 16 32 64 128 256];
 subThresDC = 0;
 %subThresNcycles = 5;
-subThresNumberreps = 5;
-subThresDurOn = 3; %subThresNcycles*(1/subThresFreq);
-subThresDurOff = 2;
+subThresNumberreps = 8;
+subThresDurOn = 2; %subThresNcycles*(1/subThresFreq);
+subThresDurOff = 1;
 
 % supra-threshold (probe pulse train) settings
-probePusleDelaySec = 2; 
+probePusleDelaySec = 1; 
 phaseDelay = 0.25; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
 phaseDelayPerFreqInCycles = subThresFreq*probePusleDelaySec + phaseDelay;
-supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelayPerFreqInCycles;
-supThresAmp = 2.4;
+supThresBurstDelaySeq = 1000*(1./subThresFreq).*phaseDelayPerFreqInCycles;
+supThresAmp = 2.6;
 supThresFreq = 300;
 supThresBurstdur = 100;
 supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
