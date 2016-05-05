@@ -676,6 +676,25 @@ elseif S.stim.continuous == 0
     else
         zvec_delay = [];
     end
+    if S.stim.burstphasedelay ~=0
+        phaseperiod = S.stim.burstphasedelay/S.basestim.frequency;
+        phasedelaysamps = round(NI.Rate*phaseperiod);
+        if S.stim.burstdelay == 0 % just use phase delay
+            zerosamps = zerosamps - phasedelaysamps;
+            zvec_delay = zeros(phasedelaysamps,1);
+        else % combine phase and time delays
+            cycleperiod = 1/S.basestim.frequency;
+            cycledelaysamps = round(NI.Rate*cycleperiod);
+            numcompletecyclesindelay = floor(delaysamps/cycledelaysamps);
+            delaysamps = numcompletecyclesindelay*cycledelaysamps;
+            delaysamps = delaysamps + phasedelaysamps;
+            
+            zerosamps = S.stim.sampperperiod - sampperburst;
+            zerosamps = zerosamps - delaysamps;
+            zvec_delay = zeros(delaysamps,1);
+        end
+    end
+    
     zvec = zeros(zerosamps,1);
     tvec = [1/NI.Rate:1/NI.Rate:sampperburst/S.ni.rate];
 end
@@ -903,23 +922,74 @@ baseDataTrans = [baseDataTrans; zvec];
 S.basestim.data = baseData;
 S.basestim.transitiondata = baseDataTrans;
 
-if isempty(stimPulseSeriesInd)
-    stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
-    baseData(stimInd) = stimData;
-    baseDataTrans(stimInd) = stimDataTrans;
-else
-    nDelay = length(zvec_delay);
-    for n = 1:length(stimPulseSeriesInd)
-        baseData(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = stimData(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
-        baseDataTrans(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = stimDataTrans(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+if strcmpi(S.basestim.stimcombinemethod,'stop-insert')
+    if isempty(stimPulseSeriesInd)
+        stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
+        baseData(stimInd) = stimData;
+        baseDataTrans(stimInd) = stimDataTrans;
+    else
+        nDelay = length(zvec_delay);
+        for n = 1:length(stimPulseSeriesInd)
+            baseData(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = stimData(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+            baseDataTrans(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = stimDataTrans(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+        end
+    end
+elseif strcmpi(S.basestim.stimcombinemethod,'add')
+    if isempty(stimPulseSeriesInd)
+        stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
+        baseData(stimInd) = baseData(stimInd)+stimData;
+        baseDataTrans(stimInd) = baseDataTrans(stimInd)+stimDataTrans;
+    else
+        nDelay = length(zvec_delay);
+        for n = 1:length(stimPulseSeriesInd)
+            baseData(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = baseData(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) + stimData(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+            baseDataTrans(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay) = baseDataTrans(stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n) + nDelay)+stimDataTrans(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+        end
+    end
+    
+elseif strcmpi(S.basestim.stimcombinemethod,'add-zerocenter')
+    if isempty(stimPulseSeriesInd)
+        stimInd = length(zvec_delay)+1:length(zvec_delay)+length(stimData);
+        nonzeroind = find(stimData~=0);
+        baseData(stimInd(nonzeroind)) = stimData(nonzeroind);
+        nonzeroind = find(stimDataTrans~=0);
+        baseDataTrans(stimInd(nonzeroind)) = stimDataTrans(nonzeroind);
+    else
+        nDelay = length(zvec_delay);
+        for n = 1:length(stimPulseSeriesInd)
+            locStimData = stimData(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+            locStimInd = stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay;
+            nonzeroind = find(locStimData~=0);
+            baseData(locStimInd(nonzeroind)) = locStimData(nonzeroind);
+            
+            locStimDataTrans = stimDataTrans(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+            baseDataTrans(locStimInd(nonzeroind)) = locStimDataTrans(nonzeroind);
+        end
     end
 end
 
-% make stim float on top of base data
-% baseData(stimInd) = baseData(stimInd(1));
-% baseData(stimInd) = baseData(stimInd) + stimData;
-% baseDataTrans(stimInd) = baseDataTrans(stimInd(1));
-% baseDataTrans(stimInd) = baseDataTrans(stimInd) + stimDataTrans;
+if S.basestim.makebasezero
+    % make the base stim zero
+    newbaseData = zeros(size(baseData));
+    newbaseDataTrans = zeros(size(baseDataTrans));    
+    if isempty(stimPulseSeriesInd)
+        nonzeroind = find(stimData~=0);
+        newbaseData(stimInd(nonzeroind)) = baseData(stimInd(nonzeroind));
+        nonzeroind = find(stimDataTrans~=0);
+        newbaseDataTrans(stimInd(nonzeroind)) = baseDataTrans(stimInd(nonzeroind));
+    else
+        for n = 1:length(stimPulseSeriesInd)
+            locStimData = stimData(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+            locStimInd = stimPulseSeriesInd(1,n)+nDelay:stimPulseSeriesInd(2,n)+nDelay;
+            nonzeroind = find(locStimData~=0);
+            newbaseData(locStimInd(nonzeroind)) = baseData(locStimInd(nonzeroind));
+            locStimDataTrans = stimDataTrans(stimPulseSeriesInd(1,n):stimPulseSeriesInd(2,n));
+            newbaseDataTrans(locStimInd(nonzeroind)) = baseDataTrans(locStimInd(nonzeroind));
+        end
+    end
+    baseData = newbaseData;
+    baseDataTrans = newbaseDataTrans;            
+end
 
 
 stimData = baseData;
@@ -1337,6 +1407,14 @@ S.fig.tab3 = uitab('Parent', S.fig.tgroup, 'Title', 'Process');
 eval(['NIprocess_' S.proc.type '(''plot'');']);
 S.proc.proctxt = uicontrol('Parent',S.fig.tab3,'Style','text','String','Processing on','units','normalized','position',[0.75 0.02 1.2*xb yb]);
 S.proc.procbut = uicontrol('Parent',S.fig.tab3,'Style','checkbox','units','normalized','position',[0.91 0.03 xb yb],'value',S.proc.proc,'callback','NIStim(''processmode'')');
+
+if strcmp(S.proc.type,'closedLoop')
+    % add closed loop button
+    S.proc.proctxt = uicontrol('Parent',S.fig.tab3,'Style','text','String','Processing on','units','normalized','position',[0.75 0.02 1.2*xb yb]);
+    S.proc.procbut = uicontrol('Parent',S.fig.tab3,'Style','checkbox','units','normalized','position',[0.91 0.03 xb yb],'value',S.proc.proc,'callback','NIStim(''processmode'')');
+    S.proc.closedloopbut =uicontrol('Parent',S.fig.tab3,'Style','push','String','Start CL','Callback','NIprocess_closedLoop(''startStim'')','backgroundcolor',[0 1 0],'units','normalized','position',[0.03 0.05 xb yb]);
+    S.proc.closetheloop = 0;
+end
 
 %--------------------------------------------------------------------------
 function NIcontinuous

@@ -24,11 +24,15 @@ phaseDelay = [0:0.125:1]; % phaseDelay in function of subthreshold stim frequenc
 supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelay;
 supThresAmp = 2.8;
 supThresFreq = 300;
-supThresBurstdur = 100;
+supThresBurstdur = 30;
 supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 supThresWaveformindex = 2; % biphasic pulse
-supThresPhase1pulsewidth = 200;
-supThresPhase2pulsewidth = 200;
+supThresPhase1pulsewidth = 50;
+supThresPhase2pulsewidth = 50;
+
+% specify how to combine supra and sub stimuli
+stimcombinemethod = 'add-zerocenter'; %'add-zerocenter'; %'add';  %'add-zerocenter' , 'stop-insert'
+makebasezero = 1;
 
 disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(supThresBurstDelaySeq)) ' minutes'])
 
@@ -83,6 +87,8 @@ P.basestim.phase2pulsewidth = 50;
 P.basestim.phase1amp = 100;
 P.basestim.phase2amp = -100;
 P.basestim.phasegap = 0;
+P.basestim.stimcombinemethod = stimcombinemethod;
+P.basestim.makebasezero = makebasezero;
 
 %--- Play preset stimulus and record data
 NIStimPreset(P)

@@ -1,9 +1,10 @@
-function P = NIStimPreset_tACS_PhaseSeries
+function P = NIStimPreset_tACS_FreqResp
+
 
 %% - Setup the marco struture -
 
 % Setup the macro variables
-P.preset.basefilename = 'RatTACSPhaseSeries-'; % set base file name
+P.preset.basefilename = 'RatTACSFreqRespSeries-'; % set base file name
 P.preset.basefilename = [P.preset.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
 P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only;
 
@@ -11,34 +12,36 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 
 % sub-threshold (base) settings
 subThresAmp = 0.5;
-subThresFreq = 2; %[0.5 1 2 4 8 16 32 64];
+subThresFreq = [1 2 4 8 16 32 64 128 256];
 subThresDC = 0;
 %subThresNcycles = 5;
-subThresNumberreps = 10;
+subThresNumberreps = 8;
+subThresDurOn = 6; %subThresNcycles*(1/subThresFreq);
+subThresDurOff = 1;
 
 % supra-threshold (probe pulse train) settings
-phaseDelay = [0:0.25:1]; %[0:0.0025:0.01]; % % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
-supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = [2.4:.2:2.8];
+supThresBurstDelay = 1000;
+supThresBurstPhaseDelay = 0; %phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
+supThresAmp = [2 3 4];
 supThresSeriesRepPeriod = 2000; % amplitudes above are presented xxx ms apart
 supThresFreq = 300;
 supThresBurstdur = 30;
-supThresWaveformindex = 6; % pulse-series
+supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
+supThresWaveformindex = 6; % biphasic pulse
 supThresPhase1pulsewidth = 50;
 supThresPhase2pulsewidth = 50;
 
-subThresDurOn = length(supThresAmp) * supThresSeriesRepPeriod/1000; %subThresNcycles*(1/subThresFreq);
-subThresDurOff = 0;
-
-supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
-
 % specify how to combine supra and sub stimuli
-stimcombinemethod = 'add-zerocenter';  % 'add', 'add-zerocenter' , 'stop-insert'
-makebasezero = 1;
+stimcombinemethod = 'add'; %'add-zerocenter'; %'add';  %'add-zerocenter' , 'stop-insert'
+makebasezero = 0;
 
-disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(supThresBurstDelaySeq)) ' minutes'])
+disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(subThresFreq)) ' minutes'])
+
 
 randomizesequence = 1;
+
+
+
 % store settings for stimulus reconstruction 
 P.preset.subThresFreq = subThresFreq;
 P.preset.subThresDC = subThresDC;
@@ -62,7 +65,7 @@ P.stim.ampmoddepth = 0;
 P.stim.ampmodfreq = 2;
 P.stim.ampmodphase = 0;
 P.stim.waveformindex = supThresWaveformindex;
-P.stim.waveformlist = {'sine','pulse','triangle','gaussian','custom','pulse-series','triangle-series','gaussian-series'};  % pulse, custom
+P.stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
 P.stim.phase1pulsewidth = supThresPhase1pulsewidth;
 P.stim.phase2pulsewidth = supThresPhase2pulsewidth;
 P.stim.phase1amp = 100;
@@ -73,7 +76,9 @@ P.stim.randomizesequence = randomizesequence;
 P.stim.series.amplitude = supThresAmp;
 P.stim.series.burstrepperiod = supThresSeriesRepPeriod;
 
-P.stim.burstdelay = supThresBurstDelaySeq;
+
+P.stim.burstdelay = supThresBurstDelay;
+P.stim.burstphasedelay = supThresBurstPhaseDelay;
 
 P.basestim.stim = 1;
 P.basestim.amplitude = subThresAmp;

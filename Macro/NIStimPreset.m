@@ -72,6 +72,8 @@ end
 if isfield(P,'basestim')
       % delay normal stimulus
         S.stim.burstdelay = P.stim.burstdelay;
+        S.stim.burstphasedelay = P.stim.burstphasedelay;
+
         % settings for base stimulus
         S.basestim.stim = P.basestim.stim;
         S.basestim.amplitude = P.basestim.amplitude;
@@ -89,6 +91,8 @@ if isfield(P,'basestim')
         S.basestim.phase2amp = P.basestim.phase2amp;
         S.basestim.phasegap = P.basestim.phasegap;
         S.basestim.waveformindex = P.basestim.waveformindex;
+        S.basestim.stimcombinemethod = P.basestim.stimcombinemethod;
+        S.basestim.makebasezero = P.basestim.makebasezero;
 end
 
 set(S.rec.filenamebut,'string',P.preset.basefilename);

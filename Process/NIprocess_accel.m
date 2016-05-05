@@ -12,7 +12,7 @@ end
 %--------------------------------------------------------------------------
 function S = NIPsettings(S)
 
-S.proc.dur = 2;
+S.proc.dur = 1;
 S.proc.buffersize = S.ni.rate*S.proc.dur;
 S.proc.rawdata = zeros(S.proc.buffersize,S.ni.nchin);
 S.proc.chdisp = 3;
@@ -44,7 +44,7 @@ if S.proc.fft == 1
     S.proc.nfft = S.proc.buffersize;
     S.proc.l = S.proc.buffersize;
     S.proc.fftdata = zeros(S.proc.nfft/2+1,S.proc.chdisp-1);
-    S.proc.navg = 10;
+    S.proc.navg = 20;
     S.proc.fftdatabuffer = zeros(S.proc.navg,S.proc.nfft/2+1,S.proc.chdisp-1);
     S.proc.fftdatamean = zeros(size(S.proc.fftdata));
     S.proc.fftdatabufferpos = 0;

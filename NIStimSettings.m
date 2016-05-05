@@ -45,7 +45,7 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.chin = [0 1 2 3 4 5];
     S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'};% {'Current','Voltage','Trigger','X','Y','MeasEl'};%
     S.ni.chout = [0 1];
-    S.ni.rate = 20e3; %1024; % 10e3; % 
+    S.ni.rate = 1024; % 20e3; % 10e3; % 
     S.ni.voltrange =  [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
@@ -130,12 +130,13 @@ S.stim.ramp = 1;
 S.stim.burstdur = 100;
 S.stim.burstrepperiod = 500;
 S.stim.burstdelay = 0;
+S.stim.burstphasedelay = 0;
 S.stim.numberreps = Inf;
 S.stim.repsplayed = 0;
 S.stim.ampmoddepth = 0;
 S.stim.ampmodfreq = 5;
 S.stim.ampmodphase = 0.5;
-S.stim.waveformindex = 2;
+S.stim.waveformindex = 1;
 S.stim.waveformlist = {'sine','pulse','triangle','gaussian','custom','pulse-series','triangle-series','gaussian-series'}; % pulse, custom
 S.stim.phase1pulsewidth = 200;
 S.stim.phase2pulsewidth = 200;
@@ -167,6 +168,8 @@ S.basestim.phase2pulsewidth = 50;
 S.basestim.phase1amp = 100;
 S.basestim.phase2amp = -100;
 S.basestim.phasegap = 0;
+S.basestim.stimcombinemethod = {'add'}; % 'add-zerocenter' , 'stop-insert'
+S.basestim.makebasezero = 0;
 
 %% ----- Sequence Stimulus ----
 S.sequence.on = 0;
@@ -251,7 +254,7 @@ S.accel.chinds = [4 5 6];
 
 %% ------ Process ------
 S.proc.proc = 0;
-S.proc.type = 'accel'; %'trigAvg';  %'trigSpike'; %   %
+S.proc.type = 'closedLoop'; %'accel'; %'trigAvg';  %'trigSpike'; %   %
 eval(['S = NIprocess_' S.proc.type '(''settings'',S);']);
 
 %% ------ Macro ------
