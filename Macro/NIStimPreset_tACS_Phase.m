@@ -15,24 +15,24 @@ subThresAmp = 0.2;
 subThresFreq = 2; %[0.5 1 2 4 8 16 32 64];
 subThresDC = 0;
 %subThresNcycles = 5;
-subThresNumberreps = 6;
+subThresNumberreps = 5;
 subThresDurOn = 2; %subThresNcycles*(1/subThresFreq);
 subThresDurOff = 0;
 
 % supra-threshold (probe pulse train) settings
 phaseDelay = [0:0.125:1]; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
 supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = 2.8;
-supThresFreq = 300;
-supThresBurstdur = 30;
+supThresAmp = 3.5;
+supThresFreq = 20;
+supThresBurstdur = 50;
 supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 supThresWaveformindex = 2; % biphasic pulse
-supThresPhase1pulsewidth = 50;
-supThresPhase2pulsewidth = 50;
+supThresPhase1pulsewidth = 400;
+supThresPhase2pulsewidth = 400;
 
 % specify how to combine supra and sub stimuli
 stimcombinemethod = 'add-zerocenter'; %'add-zerocenter'; %'add';  %'add-zerocenter' , 'stop-insert'
-makebasezero = 1;
+makebasezero = 0;
 
 disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(supThresBurstDelaySeq)) ' minutes'])
 
@@ -71,6 +71,7 @@ P.stim.sameonallchannels = 1;
 P.stim.randomizesequence = randomizesequence;
 
 P.stim.burstdelay = supThresBurstDelaySeq;
+P.stim.burstphasedelay = 0;
 
 P.basestim.stim = 1;
 P.basestim.amplitude = subThresAmp;

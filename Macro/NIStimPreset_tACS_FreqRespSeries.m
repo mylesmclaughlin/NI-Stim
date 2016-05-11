@@ -1,4 +1,4 @@
-function P = NIStimPreset_tACS_FreqResp
+function P = NIStimPreset_tACS_FreqRespSeries
 
 
 %% - Setup the marco struture -
@@ -11,28 +11,28 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = 0.5;
+subThresAmp = 0.2;
 subThresFreq = [1 2 4 8 16 32 64 128 256];
 subThresDC = 0;
 %subThresNcycles = 5;
-subThresNumberreps = 8;
+subThresNumberreps = 5;
 subThresDurOn = 6; %subThresNcycles*(1/subThresFreq);
 subThresDurOff = 1;
 
 % supra-threshold (probe pulse train) settings
 supThresBurstDelay = 1000;
-supThresBurstPhaseDelay = 0; %phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
-supThresAmp = [2 3 4];
+supThresBurstPhaseDelay = 0.25; %phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
+supThresAmp = [3.4 3.6 3.8];
 supThresSeriesRepPeriod = 2000; % amplitudes above are presented xxx ms apart
 supThresFreq = 300;
-supThresBurstdur = 30;
+supThresBurstdur = 20;
 supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 supThresWaveformindex = 6; % biphasic pulse
-supThresPhase1pulsewidth = 50;
-supThresPhase2pulsewidth = 50;
+supThresPhase1pulsewidth = 200;
+supThresPhase2pulsewidth = 200;
 
 % specify how to combine supra and sub stimuli
-stimcombinemethod = 'add'; %'add-zerocenter'; %'add';  %'add-zerocenter' , 'stop-insert'
+stimcombinemethod = 'add-zerocenter'; %'add-zerocenter'; %'add';  %'add-zerocenter' , 'stop-insert'
 makebasezero = 0;
 
 disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(subThresFreq)) ' minutes'])

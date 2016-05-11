@@ -5,6 +5,7 @@ if nargin<2
 end
 
 sortFreq = 1;
+
 if sortFreq
     for n = 1:length(Ain)
         freq(n) = Ain(n).frequency;
@@ -19,10 +20,15 @@ for n = 1:length(Ain)
     %A = NIplotSeqAvg(Ain(n),[2 3],accelChInd,'allPlot');
     if strcmp(A.seqparametername,'amplitude')
         P.freqVec(n) = A.frequency;
-        P.respAmpX(n,:) = A.respAmpX;
+        [P.respAmpX(n,:),ind] =  max(A.avgData(:,:,4)');
+        for i = 1:length(ind)
+            P.respSTDX(n,i) = A.stdData(i,ind(i),4);
+        end
+        disp('here')
+        %P.respAmpX(n,:) = A.respAmpX;
         P.respAmpY(n,:) = A.respAmpY;
         P.respAmpZ(n,:) = A.respAmpZ;
-        P.respSTDX(n,:) = A.respSTDX;
+        %P.respSTDX(n,:) = A.respSTDX;
         P.respSTDY(n,:) = A.respSTDY;
         P.respSTDZ(n,:) = A.respSTDZ;
         P.respAllX(n,:,:) = A.respAllX;
@@ -164,6 +170,7 @@ if phaseplot
 end
 
 
+P.freqVec = [1 2 4 8 16 32 64 128 256];
 if sortFreq
     % Plotting frequency as function of amplitude
 

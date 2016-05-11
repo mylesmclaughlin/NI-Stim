@@ -32,6 +32,7 @@ sampVec = [round(sampWin(1)/1e3*fs):round(sampWin(2)/1e3*fs)];
 trigChInd = 3;
 trigLevel = 0.5;
 
+
 %detrend data
 for n = 1:length(detrendChIndex)
     D.data(:,detrendChIndex(n)) = detrend(D.data(:,detrendChIndex(n)));
@@ -150,7 +151,13 @@ elseif strcmp(A.seqparametername,'ampmoddepth')
     A.amfreq = N.stim.ampmodfreq;
 end
 
+A.sampWin = sampWin;
+
 if exist(A.macroFile,'file')
-    disp('Converting to macro avg format')
-    A = NIseries2macro(A);
+    try
+        disp('Converting to macro avg format')
+        A = NIseries2macro(A);
+    catch
+        disp('Cannot convert to macro format')
+    end
 end

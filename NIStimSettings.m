@@ -45,8 +45,8 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.chin = [0 1 2 3 4 5];
     S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'};% {'Current','Voltage','Trigger','X','Y','MeasEl'};%
     S.ni.chout = [0 1];
-    S.ni.rate = 1024; % 20e3; % 10e3; % 
-    S.ni.voltrange =  [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];
+    S.ni.rate = 40e3; % 1024; %  10e3; % 
+    S.ni.voltrange =  [-10 10; -10 10; -10 10; -10 10; -10 10; -10 10;];
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
     disp(['Applying settings for ' S.ni.description])
