@@ -1,13 +1,13 @@
-function newA = NIseries2macro(A,macroFile)
+function newA = NIseries2macroLowFreqPhase(A,macroFile)
 
 if nargin<2
     macroFile = A.macroFile;
 end
 
 load(macroFile,'-mat')
-repperiod = P.stim.series.burstrepperiod;
-amplitude = P.stim.series.amplitude;
-nrep = length(amplitude);
+repperiod = 1/P.stim.frequency*1000;
+nrep = P.stim.burstdur/repperiod;
+amplitude = ones(1,nrep)*P.stim.amplitude;
 
 %load bin file
 sampWin = [1/A.fs*1000 repperiod]; 
