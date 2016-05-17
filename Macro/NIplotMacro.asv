@@ -101,7 +101,7 @@ end
 
 %------------- Line plots ------------
 
-if strcmp (wantPlot,'plot')
+if strcmp (wantplot,'plot')
     
     copo = {'b','r','g','m','k','y','c','b','r','g','m','k','y','c'};
     np = size(P.respAmpY,1);

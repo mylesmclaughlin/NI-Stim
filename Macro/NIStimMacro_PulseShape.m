@@ -8,7 +8,7 @@ M(1).macro.basefilename = 'Rat-PulseShape-'; % set base file name
 M(1).macro.basefilename = [M(1).macro.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
 M(1).macro.nreps = 5; % - number of time to repeated each stimulus contained in the macro structure
 M(1).macro.randomize = 1;  % randomize the order of stimului presentation
-M(1).macro.record = 0; % record data (separate file for each rep of macro)
+M(1).macro.record = 1; % record data (separate file for each rep of macro)
 
 if M(1).macro.record == 0
     M(1).macro.allinonebinfile = 1; % specify if the recorded data will be stored in one continuous .bin file ...
@@ -17,13 +17,13 @@ elseif M(1).macro.record == 1
 end
 
 % Set fixed variables for easy modification
-ampRange = 0.1:0.1:1;
+ampRange = 2.5:0.1:3.4;
 frequency = 300;
 burstdur = 100;
 burstrepperiod = 2000;
-phase1pulsewidth = 100;
-phase2pulsewidth = 100;
-phasegap = 100;
+phase1pulsewidth = 200;
+phase2pulsewidth = 200;
+phasegap = 200;
 numberreps = 1;
 
 % --Setup stimulation variables in a struct array --
@@ -102,55 +102,55 @@ M(3).stim.phasegap = 0;
 M(3).stim.sameonallchannels = 1;
 M(3).stim.randomizesequence = 0;
 
-% Stimulus 4 - Triangle
-M(4).stim.seqname = 'TRI';
-M(4).stim.stim = 0;
-M(4).stim.amplitude = ampRange;
-M(4).stim.frequency = frequency;
-M(4).stim.phase = 0;
-M(4).stim.continuous = 0;
-M(4).stim.ramp = 0;
-M(4).stim.burstdur = burstdur;
-M(4).stim.burstrepperiod = burstrepperiod;
-M(4).stim.numberreps = numberreps;
-M(4).stim.repsplayed = 0;
-M(4).stim.ampmoddepth = 0;
-M(4).stim.ampmodfreq = 5;
-M(4).stim.ampmodphase = 0;
-M(4).stim.waveformindex = 3;
-M(4).stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
-M(4).stim.phase1pulsewidth = phase1pulsewidth;
-M(4).stim.phase2pulsewidth = phase2pulsewidth;
-M(4).stim.phase1amp = 100;
-M(4).stim.phase2amp = -100;
-M(4).stim.phasegap = phasegap;
-M(4).stim.sameonallchannels = 1;
-M(4).stim.randomizesequence = 0;
-
-% Stimulus 5 - Gauss
-M(5).stim.seqname = 'GAUS';
-M(5).stim.stim = 0;
-M(5).stim.amplitude = ampRange;
-M(5).stim.frequency = frequency;
-M(5).stim.phase = 0;
-M(5).stim.continuous = 0;
-M(5).stim.ramp = 0;
-M(5).stim.burstdur = burstdur;
-M(5).stim.burstrepperiod = burstrepperiod;
-M(5).stim.numberreps = numberreps;
-M(5).stim.repsplayed = 0;
-M(5).stim.ampmoddepth = 0;
-M(5).stim.ampmodfreq = 5;
-M(5).stim.ampmodphase = 0;
-M(5).stim.waveformindex = 4;
-M(5).stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
-M(5).stim.phase1pulsewidth = phase1pulsewidth;
-M(5).stim.phase2pulsewidth = phase2pulsewidth;
-M(5).stim.phase1amp = 100;
-M(5).stim.phase2amp = -100;
-M(5).stim.phasegap = phasegap;
-M(5).stim.sameonallchannels = 1;
-M(5).stim.randomizesequence = 0;
+% % Stimulus 4 - Triangle
+% M(4).stim.seqname = 'TRI';
+% M(4).stim.stim = 0;
+% M(4).stim.amplitude = ampRange;
+% M(4).stim.frequency = frequency;
+% M(4).stim.phase = 0;
+% M(4).stim.continuous = 0;
+% M(4).stim.ramp = 0;
+% M(4).stim.burstdur = burstdur;
+% M(4).stim.burstrepperiod = burstrepperiod;
+% M(4).stim.numberreps = numberreps;
+% M(4).stim.repsplayed = 0;
+% M(4).stim.ampmoddepth = 0;
+% M(4).stim.ampmodfreq = 5;
+% M(4).stim.ampmodphase = 0;
+% M(4).stim.waveformindex = 3;
+% M(4).stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
+% M(4).stim.phase1pulsewidth = phase1pulsewidth;
+% M(4).stim.phase2pulsewidth = phase2pulsewidth;
+% M(4).stim.phase1amp = 100;
+% M(4).stim.phase2amp = -100;
+% M(4).stim.phasegap = phasegap;
+% M(4).stim.sameonallchannels = 1;
+% M(4).stim.randomizesequence = 0;
+% 
+% % Stimulus 5 - Gauss
+% M(5).stim.seqname = 'GAUS';
+% M(5).stim.stim = 0;
+% M(5).stim.amplitude = ampRange;
+% M(5).stim.frequency = frequency;
+% M(5).stim.phase = 0;
+% M(5).stim.continuous = 0;
+% M(5).stim.ramp = 0;
+% M(5).stim.burstdur = burstdur;
+% M(5).stim.burstrepperiod = burstrepperiod;
+% M(5).stim.numberreps = numberreps;
+% M(5).stim.repsplayed = 0;
+% M(5).stim.ampmoddepth = 0;
+% M(5).stim.ampmodfreq = 5;
+% M(5).stim.ampmodphase = 0;
+% M(5).stim.waveformindex = 4;
+% M(5).stim.waveformlist = {'sine','pulse','triangle','gaussian','custom'}; % pulse, custom
+% M(5).stim.phase1pulsewidth = phase1pulsewidth;
+% M(5).stim.phase2pulsewidth = phase2pulsewidth;
+% M(5).stim.phase1amp = 100;
+% M(5).stim.phase2amp = -100;
+% M(5).stim.phasegap = phasegap;
+% M(5).stim.sameonallchannels = 1;
+% M(5).stim.randomizesequence = 0;
 
 %% - Run the macro -
 M = NIStimMacro(M);

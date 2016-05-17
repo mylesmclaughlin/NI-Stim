@@ -1,13 +1,13 @@
 
-function [A,P] = MEPanalysis(fileName, filePath, tacsFreq, TrainPulseDuration)
+function [A,P] = MEPanalysis(A, tacsFreq, TrainPulseDuration)
 
 
-A = NImakeSeqAvg(fileName, filePath, 4:6);
+%A = NImakeSeqAvg(fileName, filePath, 4:6);
 
 ch =4;
 plotShift = [1 0.05 0.05];
 RepNumber = length(squeeze(A(1).allData(:,1,1,1)));
-colorIn = ['b','r','g','m','k'];
+colorIn = ['b','r','g','m','k','b','r','g','m','k'];
 
 
 TrainPulseDurationSamples = round(TrainPulseDuration/1000 * A(1).fs + 0.2*A(1).fs); % 100 ms before and after the train
@@ -15,24 +15,24 @@ PulseNumber = round((TrainPulseDuration/1000)*A(1).frequency);
 
 
 %Plotting
-for j =1:length(A(1).amplitude)
-    for i = 1:length(A)
-        figure
-        shift = round(A(i).phase * 1/tacsFreq *A(i).fs+1);
-        plot(squeeze(A(i).allData(1,j,shift:TrainPulseDurationSamples+shift,ch)))
-        hold on
-        for  k =2:RepNumber
-            plot(squeeze(A(i).allData(k,j,shift:TrainPulseDurationSamples+shift,ch)- (k-1)*plotShift(ch-3)),colorIn(k))
-        end
-        for z = 0:PulseNumber-1
-            PulseIndex = 0.1*A(1).fs+1/(A(1).frequency)*z*A(i).fs;
-            minData = min(A(i).allData(RepNumber,j,shift:TrainPulseDurationSamples+shift,ch)-(RepNumber-1)*plotShift(ch-3));
-            maxData = max(A(i).allData(1,j,TrainPulseDurationSamples+shift,ch));
-            line([PulseIndex PulseIndex],[minData maxData],'LineStyle','--');
-        end
-        axis ('tight')
-    end
-end
+% for j =1:length(A(1).amplitude)
+%     for i = 1:length(A)
+%         figure
+%         shift = round(A(i).phase * 1/tacsFreq *A(i).fs+1);
+%         plot(squeeze(A(i).allData(1,j,shift:TrainPulseDurationSamples+shift,ch)))
+%         hold on
+%         for  k =2:RepNumber
+%             plot(squeeze(A(i).allData(k,j,shift:TrainPulseDurationSamples+shift,ch)- (k-1)*plotShift(ch-3)),colorIn(k))
+%         end
+%         for z = 0:PulseNumber-1
+%             PulseIndex = 0.1*A(1).fs+1/(A(1).frequency)*z*A(i).fs;
+%             minData = min(A(i).allData(RepNumber,j,shift:TrainPulseDurationSamples+shift,ch)-(RepNumber-1)*plotShift(ch-3));
+%             maxData = max(A(i).allData(1,j,TrainPulseDurationSamples+shift,ch));
+%             line([PulseIndex PulseIndex],[minData maxData],'LineStyle','--');
+%         end
+%         axis ('tight')
+%     end
+% end
 
 
 
@@ -48,29 +48,61 @@ wo = 50/(A(1).fs/2);  bw = wo/10;
 Window = [0.002 0.05];
 
 for j = 1:length(A);
-    LastPulseIndex(j) = round(0.1*A(j).fs + (PulseNumber-1) * 1/A(j).frequency * A(j).fs + A(j).phase * 1/tacsFreq *A(i).fs); %1/(A(1).frequency)*j*A(i).fs;
+    LastPulseIndex(j) = round(0.1*A(j).fs + (PulseNumber-1) * 1/A(j).frequency * A(j).fs + A(j).phase * 1/tacsFreq *A(j).fs); %1/(A(1).frequency)*j*A(i).fs;
     
     for i = 1:length(A(1).amplitude)
         for z = 1:RepNumber
             data = filter(b1,a1,A(j).allData(z,i,:,ch));
             data = filter(b,a,data);
             data1 = data(LastPulseIndex(j)+Window(1)*A(j).fs:LastPulseIndex(j)+Window(2)*A(j).fs);
+            A(j).filtredDataInterest(z,i,:) = data1;
             A(j).AreaMEP(i,z) = sum(abs(data1));
-            [pks,locs] = findpeaks(squeeze(data1),'MinPeakHeight',0.05);
-%             A(j).pks(i,z,:) = pks(1:3);
-%             A(j).locs(i,z,:) = locs(1:3);
-%             A(j).locs(i,z,:) = A(j).locs(i,z,:) + LastPulseIndex(j)+Window(1)*A(j).fs;
+            
+           
+            [pks,locs] = findpeaks(squeeze(data1(1:0.025*A(1).fs)),'sortstr','descend');
+            A(j).pks(i,z,:) = pks(1:3);
+            A(j).maxPeak(i,z) = max(pks(1:3));
+            A(j).locs(i,z,:) = locs(1:3) + LastPulseIndex(j)+Window(1)*A(j).fs;
+
         end
+        A(j).avgPeak(i) = mean(A(j).maxPeak(i,:));
+        A(j).stdPeak(i) = std(A(j).maxPeak(i,:));
+          
     end
+    
 %     figure
 %     plot(squeeze(A(j).allData(RepNumber,length(A(1).amplitude),:,4)))
 %     hold on
 %     plot(squeeze(data),'g')
 %     line([LastPulseIndex(j)+Window(1)*A(j).fs LastPulseIndex(j)+Window(1)*A(j).fs],[min(A(j).allData(2,2,:,4)) max(A(j).allData(2,2,:,4))],'color','r','LineStyle','--');
 %     line([LastPulseIndex(j)+Window(2)*A(j).fs LastPulseIndex(j)+Window(2)*A(j).fs],[min(A(j).allData(2,2,:,4)) max(A(j).allData(2,2,:,4))],'color','r','LineStyle','--');
-    A(j).MeanMEP = mean(A(j).AreaMEP.');
-    A(j).StdMEP = std(A(j).AreaMEP',0,1);
+%     plot(squeeze(A(j).locs(length(A(1).amplitude),RepNumber,:)),squeeze(A(j).pks(length(A(1).amplitude),RepNumber,:)),'*','color','r')
+    
+    A(j).MeanMEPArea = mean(A(j).AreaMEP.');
+    A(j).StdMEPArea = std(A(j).AreaMEP',0,1);
 end
+
+
+for j =1:length(A(1).amplitude)   
+    for i = 1:length(A)
+        LastPulseIndex(i) = round(0.1*A(i).fs + (PulseNumber-1) * 1/A(i).frequency * A(i).fs + A(i).phase * 1/tacsFreq *A(i).fs); 
+        k=1;
+        figure
+        plot(squeeze(A(i).filtredDataInterest(k,j,:)))
+        hold on
+        plot(squeeze(A(i).locs(j,k,:))-LastPulseIndex(i)-Window(1)*A(i).fs,squeeze(A(i).pks(j,k,:)),'*','color','r')
+        for  k =2:RepNumber
+            plot(squeeze(A(i).filtredDataInterest(k,j,:))- (k-1)*plotShift(ch-3),colorIn(k))
+            plot(squeeze(A(i).locs(j,k,:))-LastPulseIndex(i)-Window(1)*A(i).fs,squeeze(A(i).pks(j,k,:)- (k-1)*plotShift(ch-3)),'*','color','r')
+        end
+        
+    end
+end
+
+
+
+
+
 
 for j = 1:length(A)
     for i = 1:length(A(1).amplitude)
@@ -84,20 +116,20 @@ end
 % plot
 
 for j = 1:length(A)
-    MeanMEPvec(j,:) = A(j).MeanMEP;
-    StdMEPvec(j,:) = A(j).StdMEP;
+    MeanMEPAreavec(j,:) = A(j).MeanMEPArea;
+    StdMEPAreavec(j,:) = A(j).StdMEPArea;
 end
 
 
 
 % figure
 % 
-% for i=1:length(MeanMEPvec(1,:))
+% for i=1:length(MeanMEPAreavec(1,:))
 %     if i==1
-%         errorbar(MeanMEPvec(:,1),StdMEPvec(:,i))
+%         errorbar(MeanMEPAreavec(:,1),StdMEPAreavec(:,i))
 %         hold on
 %     else
-%         errorbar(MeanMEPvec(:,i),StdMEPvec(:,i),colorIn(i))
+%         errorbar(MeanMEPAreavec(:,i),StdMEPAreavec(:,i),colorIn(i))
 %     end
 % end
 
@@ -133,10 +165,13 @@ for n = 1:length(Ain)
         P.respAllX(n,:,:) = A1.respAllX;
         P.respAllY(n,:,:) = A1.respAllY;
         P.respAllZ(n,:,:) = A1.respAllZ;
-        P.StdMEP (n,:) = A1.StdMEP;
-        P.MeanMEP (n,:) = A1.MeanMEP;
-        P.MeanMEPvec(n,:) = A1.MeanMEP;
-        P.StdMEPvec(n,:) = A1.StdMEP;
+        P.StdMEPArea (n,:) = A1.StdMEPArea;
+        P.MeanMEPArea (n,:) = A1.MeanMEPArea;
+        P.MeanMEPAreavec(n,:) = A1.MeanMEPArea;
+        P.StdMEPAreavec(n,:) = A1.StdMEPArea;
+        
+        P.avgPeak(n,:) = A1.avgPeak;
+        P.stdPeak(n,:) = A1.stdPeak;
     elseif strcmp(A1.seqparametername,'phasegap')
         P.freqVec(n) = A1.frequency;
         P.ampVec(n) = A1.amplitude;
@@ -149,10 +184,10 @@ for n = 1:length(Ain)
         P.respAllX(n,:,:) = A1.respAllX;
         P.respAllY(n,:,:) = A1.respAllY;
         P.respAllZ(n,:,:) = A1.respAllZ;
-        P.StdMEP (n,:) = A1.StdMEP;
-        P.MeanMEP (n,:) = A1.MeanMEP;
-        P.MeanMEPvec(n,:) = A1.MeanMEP;
-        P.StdMEPvec(n,:) = A1.StdMEP;
+        P.StdMEPArea (n,:) = A1.StdMEPArea;
+        P.MeanMEPArea (n,:) = A1.MeanMEPArea;
+        P.MeanMEPAreavec(n,:) = A1.MeanMEPArea;
+        P.StdMEPAreavec(n,:) = A1.StdMEPArea;
     elseif strcmp(A1.seqparametername,'frequency')
         P.ampVec(n) = A1.amplitude;
         P.respAmpX(:,n) = A1.respAmpX;
@@ -164,10 +199,10 @@ for n = 1:length(Ain)
         P.respAllX(n,:,:) = A1.respAllX;
         P.respAllY(n,:,:) = A1.respAllY;
         P.respAllZ(n,:,:) = A1.respAllZ;
-        P.StdMEP (n,:) = A1.StdMEP;
-        P.MeanMEP (n,:) = A1.MeanMEP;
-        P.MeanMEPvec(n,:) = A1.MeanMEP;
-        P.StdMEPvec(n,:) = A1.StdMEP;
+        P.StdMEPArea (n,:) = A1.StdMEPArea;
+        P.MeanMEPArea (n,:) = A1.MeanMEPArea;
+        P.MeanMEPAreavec(n,:) = A1.MeanMEPArea;
+        P.StdMEPAreavec(n,:) = A1.StdMEPArea;
     end
 end
 
@@ -216,7 +251,8 @@ if phaseplot
     for i = 1:np
         
         %errorbar(P.phase,P.respAmpX(:,i),P.respSTDX(:,i),[copo{i} '.-'])
-        errorbar(P.phase,P.MeanMEPvec(:,i),P.StdMEPvec(:,i),[copo{i} '.-'])
+        errorbar(P.phase,P.MeanMEPAreavec(:,i),P.StdMEPAreavec(:,i),[copo{i} '.-'])
+        %errorbar(P.phase,P.avgPeak(:,i),P.stdPeak(:,i),[copo{i} '.-'])
         
         hold on
     end

@@ -11,24 +11,24 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = 0.2;
-subThresFreq = 2; %[0.5 1 2 4 8 16 32 64];
+subThresAmp = 0.6;
+subThresFreq = 4; %[0.5 1 2 4 8 16 32 64];
 subThresDC = 0;
 %subThresNcycles = 5;
-subThresNumberreps = 5;
+subThresNumberreps = 8;
 subThresDurOn = 2; %subThresNcycles*(1/subThresFreq);
 subThresDurOff = 0;
 
 % supra-threshold (probe pulse train) settings
 phaseDelay = [0:0.125:1]; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
 supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = 3.5;
-supThresFreq = 20;
-supThresBurstdur = 50;
+supThresAmp = 3.6;
+supThresFreq = 300;
+supThresBurstdur = 100;
 supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 supThresWaveformindex = 2; % biphasic pulse
-supThresPhase1pulsewidth = 400;
-supThresPhase2pulsewidth = 400;
+supThresPhase1pulsewidth = 200;
+supThresPhase2pulsewidth = 200;
 
 % specify how to combine supra and sub stimuli
 stimcombinemethod = 'add-zerocenter'; %'add-zerocenter'; %'add';  %'add-zerocenter' , 'stop-insert'
