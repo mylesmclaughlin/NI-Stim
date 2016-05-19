@@ -144,30 +144,30 @@ if strfind(A(1).macro,'TACSfreq');
     [s,sind] = sort(tacsfreq);
     A = A(sind);
 end
-
-if isempty(strfind(A(1).macro,'singlefreq')) | isempty(strfind(A(1).macro,'baseline')) | isempty(strfind(A(1).macro,'dcpos')) | isempty(strfind(A(1).macro,'dcneg'))
-    for n = 1:length(A)
-        if strfind(A(n).macro,'singlefreq')
-            phase(n) = str2num(A(n).macro(11:end));
-            if phase(n)>1 & phase(n)<10
-                phase(n) = phase(n)/10;
-            elseif phase(n)>10 & phase(n)<100
-                phase(n) = phase(n)/100;
-            elseif phase(n)>100 & phase(n)<1000
-                phase(n) = phase(n)/1000;
-            end
-        elseif strfind(A(n).macro,'baseline')
-            phase(n) = -1;
-        elseif strfind(A(n).macro,'dcpos')
-            phase(n) = -2;
-        elseif strfind(A(n).macro,'dcneg')
-            phase(n) = -3;
-        end
-        A(n).phase = phase(n);
-    end
-    [s,sind] = sort(phase);
-    A = A(sind);
-end
+% 
+% if isempty(strfind(A(1).macro,'singlefreq')) | isempty(strfind(A(1).macro,'baseline')) | isempty(strfind(A(1).macro,'dcpos')) | isempty(strfind(A(1).macro,'dcneg'))
+%     for n = 1:length(A)
+%         if strfind(A(n).macro,'singlefreq')
+%             phase(n) = str2num(A(n).macro(11:end));
+%             if phase(n)>1 & phase(n)<10
+%                 phase(n) = phase(n)/10;
+%             elseif phase(n)>10 & phase(n)<100
+%                 phase(n) = phase(n)/100;
+%             elseif phase(n)>100 & phase(n)<1000
+%                 phase(n) = phase(n)/1000;
+%             end
+%         elseif strfind(A(n).macro,'baseline')
+%             phase(n) = -1;
+%         elseif strfind(A(n).macro,'dcpos')
+%             phase(n) = -2;
+%         elseif strfind(A(n).macro,'dcneg')
+%             phase(n) = -3;
+%         end
+%         A(n).phase = phase(n);
+%     end
+%     [s,sind] = sort(phase);
+%     A = A(sind);
+% end
 
 % if strfind(A(1).macro,'dc')
 %     for n = 1:length(A)

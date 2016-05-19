@@ -151,6 +151,23 @@ elseif strcmp(A.seqparametername,'ampmoddepth')
     A.amfreq = N.stim.ampmodfreq;
 end
 
+if isfield(N.sequence,'twoparameters')
+    if N.sequence.twoparameters == 1
+        A.seqparametername2 = N.sequence.parametername2;
+        A.seqparametervalues2 = N.sequence.parametervalues2;
+        
+        if strcmp(A.seqparametername2,'frequency')
+            A.frequency = A.seqparametervalues2;
+        elseif strcmp(A.seqparametername2,'amplitude')
+            A.amplitude = A.seqparametervalues2;
+        elseif strcmp(A.seqparametername2,'ampmoddepth')
+            A.ampmod = A.seqparametervalues2;
+            A.amfreq = N.stim.ampmodfreq;
+        end
+    end
+end
+
+
 A.sampWin = sampWin;
 
 if exist(A.macroFile,'file')

@@ -24,15 +24,15 @@ for n = 1:length(Ain)
     %A = NIplotSeqAvg(Ain(n),[2 3],accelChInd,'allPlot');
     if strcmp(A.seqparametername,'amplitude')
         P.freqVec(n) = A.frequency;
-        [P.respAmpX(n,:),ind] =  max(A.avgData(:,:,4)');
-        for i = 1:length(ind)
-            P.respSTDX(n,i) = A.stdData(i,ind(i),4);
-        end
-        disp('here')
-        %P.respAmpX(n,:) = A.respAmpX;
+%         [P.respAmpX(n,:),ind] =  max(A.avgData(:,:,4)');
+%         for i = 1:length(ind)
+%             P.respSTDX(n,i) = A.stdData(i,ind(i),4);
+%         end
+%         disp('here')
+        P.respAmpX(n,:) = A.respAmpX;
         P.respAmpY(n,:) = A.respAmpY;
         P.respAmpZ(n,:) = A.respAmpZ;
-        %P.respSTDX(n,:) = A.respSTDX;
+        P.respSTDX(n,:) = A.respSTDX;
         P.respSTDY(n,:) = A.respSTDY;
         P.respSTDZ(n,:) = A.respSTDZ;
         P.respAllX(n,:,:) = A.respAllX;

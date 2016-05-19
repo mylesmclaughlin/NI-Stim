@@ -543,59 +543,68 @@ S.stim.phase2amp = str2num(get(S.stim.phase2ampbut,'string'));
 S.stim.phasegap = str2num(get(S.stim.phasegapbut,'string'));
 
 if ~strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
-    SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq','burstdelay'};
     hit = 0;
-    for n = 1:length(SequenceFields)
-        eval(['param = S.stim.' SequenceFields{n} ';']);
-        fieldL = length(param);
-        if fieldL>1
-            S.sequence.on = 1;
-            S.sequence.thisseq = 0;
-            S.sequence.loopthisseq = 1;
-            S.sequence.nseq = fieldL;
-            S.sequence.parametername = SequenceFields{n};
-            S.sequence.basestimseq = 0;
-            S.sequence.parametervalues = param;
-            eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
-            S.sequence.seq = [1:S.sequence.nseq];
-            if S.stim.numberreps == Inf
-                S.sequence.seqIndex =  S.sequence.seq;
-            else
-                if S.stim.randomizesequence == 0
-                    S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
-                elseif S.stim.randomizesequence == 1
-                    S.sequence.seqIndex = [];
-                    for r = 1:S.stim.numberreps
-                        rInd = randperm(S.sequence.nseq);
-                        S.sequence.seqIndex =  [S.sequence.seqIndex S.sequence.seq(rInd)];
-                    end
-                end
-            end
-            hit = 1;
+    for i = 1:2
+        if i == 1
+            % Standard stim  seq fields
+            SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq','burstdelay','burstphasedelay'};
+        elseif i == 2
+            % Base stim seq fields 
+            SequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};    
         end
-    end
-    
-    if hit == 0 % look for sequence in basestimulus
-        BaseSequenceFields = {'amplitude','frequency','phase','ampmoddepth','ampmodfreq'};
-        for n = 1:length(BaseSequenceFields)
-            eval(['param = S.basestim.' BaseSequenceFields{n} ';']);
+        
+        for n = 1:length(SequenceFields)
+            if i == 1
+                eval(['param = S.stim.' SequenceFields{n} ';']);
+            elseif i == 2
+                eval(['param = S.basestim.' SequenceFields{n} ';']);
+            end
             fieldL = length(param);
             if fieldL>1
                 S.sequence.on = 1;
                 S.sequence.thisseq = 0;
                 S.sequence.loopthisseq = 1;
-                S.sequence.nseq = fieldL;
-                S.sequence.parametername = BaseSequenceFields{n};
-                S.sequence.basestimseq = 1;
-                S.sequence.parametervalues = param;
-                eval(['S.basestim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
-                S.sequence.seq = [1:S.sequence.nseq];
-                if S.stim.numberreps == Inf
-                    S.sequence.seqIndex =  S.sequence.seq;
-                else
-                    S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+                
+                if hit == 0
+                    S.sequence.twoparameters = 0;
+                    if i == 1
+                        S.sequence.basestimseq = 0;
+                    elseif i == 2
+                        S.sequence.basestimseq = 1;
+                    end
+                    S.sequence.nseq = fieldL;
+                    S.sequence.parametername = SequenceFields{n};
+                    S.sequence.parametervalues = param;
+                    
+                    if i == 1
+                        eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
+                    elseif i == 2
+                        eval(['S.basestim.' SequenceFields{n} ' = S.sequence.parametervalues(1);']);
+                    end
+                elseif hit == 1
+                    S.sequence.twoparameters = 1;
+                    if i == 1
+                        S.sequence.basestimseq2 = 0;
+                    elseif i == 2
+                        S.sequence.basestimseq2 = 1;
+                    end
+                    S.sequence.nseq = S.sequence.nseq*fieldL;
+                    S.sequence.parametername2 = SequenceFields{n};
+                    S.sequence.parametervalues2 = [];
+                    for m = 1:fieldL
+                        S.sequence.parametervalues2 = [S.sequence.parametervalues2 repmat(param(m),1,length(S.sequence.parametervalues))];
+                    end
+                    S.sequence.parametervalues = repmat(S.sequence.parametervalues,1,fieldL);
+                    
+                    if i == 1
+                        eval(['S.stim.' SequenceFields{n} ' = S.sequence.parametervalues2(1);']);
+                    elseif i == 2
+                        eval(['S.basestim.' SequenceFields{n} ' = S.sequence.parametervalues2(1);']);
+                    end
+                elseif hit > 1
+                    disp('ERROR: Too many sequence parameters')
                 end
-                hit = 1;
+                hit = hit+1;
             end
         end
     end
@@ -606,12 +615,33 @@ if ~strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
         S.sequence.loopthisseq = S.sequence.thisseq;
         S.sequence.nseq = 0;
         S.sequence.parametername = '';
+        S.sequence.parametername2 = '';
+        S.sequence.twoparameters = 0;
         S.sequence.basestimseq = [];
+        S.sequence.basestimseq2 = [];
         S.sequence.parametervalues = [];
+        S.sequence.parametervalues2 = [];
         S.sequence.data = [];
         S.sequence.seq = [1:S.sequence.nseq];
         S.sequence.seqIndex =  S.sequence.seq;
         S.stim.randomizesequence = 0;
+    end
+    
+    if hit ~= 0
+        S.sequence.seq = [1:S.sequence.nseq];
+        if S.stim.numberreps == Inf
+            S.sequence.seqIndex =  S.sequence.seq;
+        else
+            if S.stim.randomizesequence == 0
+                S.sequence.seqIndex =  repmat(S.sequence.seq,1,S.stim.numberreps);
+            elseif S.stim.randomizesequence == 1
+                S.sequence.seqIndex = [];
+                for r = 1:S.stim.numberreps
+                    rInd = randperm(S.sequence.nseq);
+                    S.sequence.seqIndex =  [S.sequence.seqIndex S.sequence.seq(rInd)];
+                end
+            end
+        end
     end
 end
 %-------------------------------------------------------------------------
@@ -1006,6 +1036,15 @@ for n = 2:S.sequence.nseq
     elseif S.sequence.basestimseq == 1;
         eval(['S.basestim.' S.sequence.parametername ' = S.sequence.parametervalues(n);']);
     end
+    
+    if S.sequence.twoparameters == 1;
+        if S.sequence.basestimseq2 == 0;
+            eval(['S.stim.' S.sequence.parametername2 ' = S.sequence.parametervalues2(n);']);
+        elseif S.sequence.basestimseq2 == 1;
+            eval(['S.basestim.' S.sequence.parametername2 ' = S.sequence.parametervalues2(n);']);
+        end
+    end
+    
     NImakeStim;
     eval(['S.sequence.data.stim' num2str(n) '  = S.stim.data;']);
 end
@@ -1051,6 +1090,7 @@ global S NI
 
         part1 = S.stim.amplitude*(S.stim.phase1amp/100)*triang(sampperphase1);
         part2 = S.stim.amplitude*(S.stim.phase2amp/100)*triang(sampperphase2);
+
     elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'gaussian','gaussian-series'}))
         widthhalfmax1 = sampperphase1;
         widthhalfmax2 = sampperphase2;
@@ -1064,6 +1104,7 @@ global S NI
             end
         end
         samppergap = samppergap - (sampperphase1-widthhalfmax1)/2;
+    
         go = 1;
         while go
             sampperphase2 = sampperphase2+1;
@@ -1080,8 +1121,13 @@ global S NI
 
     charge1 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part1)*(1/S.ni.rate); % charge in microC
     charge2 = 1e3 * S.current.onevoltequalsXmilliamps * sum(part2)*(1/S.ni.rate);
+    energy1 = 1e6 * S.current.onevoltequalsXmilliamps * sum(part1.^2)*(1/S.ni.rate); % energy in microC
+    energy2 = 1e6 * S.current.onevoltequalsXmilliamps * sum(part2.^2)*(1/S.ni.rate);
     interpeakgap = (sampperphase1/2 + samppergap + sampperphase2/2)/S.ni.rate * 1e6;
-
+    
+    disp(['Charge per phase 1 = ' num2str(charge1) ' uC, Charge per phase 2 = ' num2str(charge2) ' uC'])
+    disp(['Energy per phase 1 = ' num2str(energy1) ' nJ, Energy per phase 2 = ' num2str(energy2) ' nJ'])
+    
     pulse = [part1; zeros(samppergap,1); part2];
     pulseperiod = 1/S.stim.frequency;
     sampperpulse = round(NI.Rate*pulseperiod);
@@ -1651,8 +1697,10 @@ if S.stim.frequency > NI.Rate/2
     set(S.stim.freqbut, 'string', num2str(round(NI.Rate/2)))
 end
 
+
 % adjust stim freq to give exact value base on number of samples per period
-S.stim.frequency = round(NI.Rate)/round(NI.Rate/S.stim.frequency);
+S.stim.frequency = str2num(get(S.stim.freqbut,'string'));
+S.stim.frequency = round(NI.Rate)./round(NI.Rate./S.stim.frequency);
 set(S.stim.freqbut,'String',num2str(S.stim.frequency));
         
 
