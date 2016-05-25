@@ -12,7 +12,7 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 
 % sub-threshold (base) settings
 subThresAmp = 1;
-subThresFreq = [3:3:30]; %[1 2 4 8 16 32 64 128 256];
+subThresFreq = [1 2 4 8 16 32 64 128 256];
 subThresDC = 0;
 %subThresNcycles = 5;
 subThresNumberreps = 5;
@@ -22,7 +22,7 @@ subThresDurOff = 1;
 % supra-threshold (probe pulse train) settings
 supThresBurstDelay = 1000;
 supThresBurstPhaseDelay = 0; %phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
-supThresAmp = [4.2 4.4 4.6];
+supThresAmp = [2.9 3.1 3.3];
 supThresSeriesRepPeriod = 2000; % amplitudes above are presented xxx ms apart
 supThresFreq = 300;
 supThresBurstdur = 20;

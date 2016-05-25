@@ -15,14 +15,14 @@ subThresAmp = [0 0.2 0.4 0.6];
 subThresFreq = 2; %[0.5 1 2 4 8 16 32 64];
 subThresDC = 0;
 %subThresNcycles = 5;
-subThresNumberreps = 8;
+subThresNumberreps = 5;
 subThresDurOn = 2; %subThresNcycles*(1/subThresFreq);
 subThresDurOff = 0.5;
 
 % supra-threshold (probe pulse train) settings
-phaseDelay = [0.25:0.25:1]; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
+phaseDelay = [0:0.125:1]; %[0.25:0.25:1]; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
 supThresBurstDelaySeq = 1000 + 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = 3.6;
+supThresAmp = 2.6;
 supThresFreq = 300;
 supThresBurstdur = 100;
 supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms

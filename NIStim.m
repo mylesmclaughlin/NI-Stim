@@ -1125,8 +1125,8 @@ global S NI
     energy2 = 1e6 * S.current.onevoltequalsXmilliamps * sum(part2.^2)*(1/S.ni.rate);
     interpeakgap = (sampperphase1/2 + samppergap + sampperphase2/2)/S.ni.rate * 1e6;
     
-    disp(['Charge per phase 1 = ' num2str(charge1) ' uC, Charge per phase 2 = ' num2str(charge2) ' uC'])
-    disp(['Energy per phase 1 = ' num2str(energy1) ' nJ, Energy per phase 2 = ' num2str(energy2) ' nJ'])
+    %disp(['Charge per phase 1 = ' num2str(charge1) ' uC, Charge per phase 2 = ' num2str(charge2) ' uC'])
+    %disp(['Energy per phase 1 = ' num2str(energy1) ' nJ, Energy per phase 2 = ' num2str(energy2) ' nJ'])
     
     pulse = [part1; zeros(samppergap,1); part2];
     pulseperiod = 1/S.stim.frequency;

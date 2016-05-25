@@ -10,8 +10,8 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = 0.2;
-subThresFreq = 2; %[0.5 1 2 4 8 16 32 64];
+subThresAmp = 0.6; %[0 0.2 0.4 0.6]; %0.8;
+subThresFreq = 2; %[1 2 4 8 16 32 64 128];
 subThresDC = 0;
 %subThresNcycles = 5;
 subThresNumberreps = 5;
@@ -19,9 +19,9 @@ subThresNumberreps = 5;
 % supra-threshold (probe pulse train) settings
 phaseDelay = [0:0.125:1]; %[0:0.0025:0.01]; % % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
 supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = [3.4 3.6 3.8];
+supThresAmp = [2.3 2.5 2.7];
 supThresSeriesRepPeriod = 2000; % amplitudes above are presented xxx ms apart
-supThresFreq = 300;
+supThresFreq = 400;
 supThresBurstdur = 20;
 supThresWaveformindex = 6; % pulse-series
 supThresPhase1pulsewidth = 200;
@@ -36,7 +36,7 @@ supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 stimcombinemethod = 'add-zerocenter';  % 'add', 'add-zerocenter' , 'stop-insert'
 makebasezero = 0;
 
-disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(supThresBurstDelaySeq)) ' minutes'])
+disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(supThresBurstDelaySeq)*length(subThresAmp)) ' minutes'])
 
 randomizesequence = 1;
 % store settings for stimulus reconstruction 

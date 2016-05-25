@@ -4,8 +4,8 @@ function [A,P] = MEPanalysis(A, tacsFreq, TrainPulseDuration)
 
 %A = NImakeSeqAvg(fileName, filePath, 4:6);
 
-ch =4;
-plotShift = [1 0.05 0.05];
+ch =2;
+plotShift = [0.25 0.05 0.05];
 RepNumber = length(squeeze(A(1).allData(:,1,1,1)));
 colorIn = ['b','r','g','m','k','b','r','g','m','k'];
 
@@ -92,8 +92,8 @@ for j =1:length(A(1).amplitude)
         hold on
         plot(squeeze(A(i).locs(j,k,:))-LastPulseIndex(i)-Window(1)*A(i).fs,squeeze(A(i).pks(j,k,:)),'*','color','r')
         for  k =2:RepNumber
-            plot(squeeze(A(i).filtredDataInterest(k,j,:))- (k-1)*plotShift(ch-3),colorIn(k))
-            plot(squeeze(A(i).locs(j,k,:))-LastPulseIndex(i)-Window(1)*A(i).fs,squeeze(A(i).pks(j,k,:)- (k-1)*plotShift(ch-3)),'*','color','r')
+            plot(squeeze(A(i).filtredDataInterest(k,j,:))- (k-1)*plotShift(ch-1),colorIn(k))
+            plot(squeeze(A(i).locs(j,k,:))-LastPulseIndex(i)-Window(1)*A(i).fs,squeeze(A(i).pks(j,k,:)- (k-1)*plotShift(ch-1)),'*','color','r')
         end
         
     end
