@@ -71,7 +71,7 @@ else % unknown device - try these settings
 end
 S.ni.nchin = length(S.ni.chin);
 S.ni.nchout = length(S.ni.chout);
-S.ni.nupdatespersec = 10; %2; % get data and update maximum of 5 times per second
+S.ni.nupdatespersec = 4; %2; % get data and update maximum of 5 times per second
 S.ni.buffersize = S.ni.rate/S.ni.nupdatespersec;
 S.ni.updateperiod = S.ni.buffersize/S.ni.rate;
 if S.ni.updateperiod<0.1

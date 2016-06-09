@@ -16,7 +16,7 @@ end
 %--------------------------------------------------------------------------
 function S = NIPsettings(S)
 
-S.proc.bufferdur = 1;
+S.proc.bufferdur = 5;
 S.proc.buffersize = S.ni.rate*S.proc.bufferdur;
 S.proc.rawdata = zeros(S.proc.buffersize,S.ni.nchin);
 S.proc.chdisp = 2;
@@ -27,7 +27,7 @@ S.proc.specgram = 1;
 S.proc.plvcalc = 1;
 
 if S.proc.timeseries == 1;
-    S.proc.dispdur = S.proc.bufferdur;
+    S.proc.dispdur = 3;%S.proc.bufferdur;
     S.proc.dispbuffersize = S.ni.rate*S.proc.dispdur;
     S.proc.disptimedata = S.proc.procdata(end-S.proc.dispbuffersize+1:end,:); 
     S.proc.timevec = [-S.proc.dispdur:1/S.ni.rate:-1/S.ni.rate];
@@ -58,7 +58,7 @@ if S.proc.specgram == 1;
     [S.proc.termoramp,ind] = max(S.proc.psddata);
     S.proc.termorfreq = S.proc.freqvec(ind);
     S.proc.fxlims = [S.proc.freqvec(1) 50];
-    [S.proc.filterb,S.proc.filtera] = butter(2, [1 50]/(S.ni.rate/2), 'bandpass');
+    [S.proc.filterb,S.proc.filtera] = butter(2, [3 50]/(S.ni.rate/2), 'bandpass');
 end
    
 if S.proc.plvcalc == 1;
@@ -170,7 +170,7 @@ if S.proc.timeseries == 1
     S.proc.procdata(:,2) = filter(S.proc.filterb,S.proc.filtera,S.proc.procdata(:,2));
     
     S.proc.disptimedata = S.proc.procdata(end-S.proc.dispbuffersize+1:end,:);
-    S.proc.disptimedata(:,2) = 1000*S.proc.disptimedata(:,2);
+    S.proc.disptimedata(:,2) = normalize(S.proc.disptimedata(:,2));
     for n = 1:S.proc.chdisp
         set(S.proc.p1(n),'ydata',S.proc.disptimedata(:,n))
     end
@@ -259,7 +259,7 @@ if S.proc.closetheloop == 1;
         set(S.stim.phasebut,'string',changephase)
         
         %set(S.stim.phasebut,'string',S.proc.termorphase/pi)     
-        disp(['Updating stimulation phase to ' num2str(S.proc.termorphase/pi)])
+        disp(['Updating stimulation phase to ' num2str(changephase/pi)])
         
         if S.stim.stim == 0
             NIStim('startStim')
