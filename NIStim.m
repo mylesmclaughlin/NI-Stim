@@ -303,9 +303,9 @@ RH = addlistener(NI,'DataRequired',@(src,event) NIStim(src,event,2));
 NI.NotifyWhenScansQueuedBelow = S.stim.buffersize; % update buffer size
 
 % reset processing
-if S.proc.proc == 1
-    NIresetProcessedData
-end
+% if S.proc.proc == 1
+%     NIresetProcessedData
+% end
 
 % Queue zero data
 holdbuffer = S.stim.data;
@@ -733,10 +733,10 @@ if strcmpi(S.stim.waveformlist(S.stim.waveformindex),'sine')
     if S.stim.ampmoddepth == 0
         stimData = S.stim.amplitude*sin(2*pi*S.stim.frequency*tvec + S.stim.phase*2*pi)';
         
-        %         amplitudeTrans = linspace(S.stim.current.amplitude,S.stim.amplitude,length(tvec));
-        %         frequencyTrans = linspace(S.stim.current.frequency,S.stim.frequency,length(tvec));
-        %         phaseTrans = linspace(S.stim.current.phase,S.stim.phase,length(tvec));
-        %         stimDataTrans = (amplitudeTrans.*sin(2*pi*frequencyTrans.*tvec + phaseTrans*2*pi))';
+%         amplitudeTrans = linspace(S.stim.current.amplitude,S.stim.amplitude,length(tvec));
+%         frequencyTrans = linspace(S.stim.current.frequency,S.stim.frequency,length(tvec));
+%         phaseTrans = linspace(S.stim.current.phase,S.stim.phase,length(tvec));
+%         stimDataTrans = (amplitudeTrans.*sin(2*pi*frequencyTrans.*tvec + phaseTrans*2*pi))';
         stimDataTrans = stimData;
     elseif S.stim.ampmoddepth ~= 0
         %AMphase = 0.5;

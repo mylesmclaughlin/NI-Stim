@@ -5,7 +5,7 @@ function M = NIStimMacro_IPG
 
 % Setup the macro variables
 n=1;
-M(n).macro.basefilename = 'Rat-IPG-'; % set base file name
+M(n).macro.basefilename = 'Rat-PMIPG-'; % set base file name
 M(n).macro.basefilename = [M(n).macro.basefilename  strrep(strrep(datestr(now),':','-'),' ','-')]; % add date to make filename unique
 M(n).macro.nreps = 5; % - number of time to repeated each stimulus contained in the macro structure
 M(n).macro.randomize = 1;  % randomize the order of stimului presentation
@@ -18,7 +18,7 @@ elseif M(n).macro.record == 1
 end
 
 % Set fixed variables for easy modification
-ampRange = 1.3:0.1:2.3;
+ampRange = 1.4:.1:2.3;
 frequency = 300;
 burstdur = 100;
 burstrepperiod = 2000;

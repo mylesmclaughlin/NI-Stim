@@ -16,7 +16,7 @@ end
 %--------------------------------------------------------------------------
 function S = NIPsettings(S)
 
-S.proc.bufferdur = 20;
+S.proc.bufferdur = 1;
 S.proc.buffersize = S.ni.rate*S.proc.bufferdur;
 S.proc.rawdata = zeros(S.proc.buffersize,S.ni.nchin);
 S.proc.chdisp = 2;
@@ -24,11 +24,11 @@ S.proc.procdata = zeros(S.proc.buffersize,S.proc.chdisp);
 S.proc.chilabel = {'Current','Displacement'};
 S.proc.timeseries = 1;
 S.proc.specgram = 1;
-
+S.proc.plvcalc = 1;
 
 if S.proc.timeseries == 1;
-    S.proc.dispdur = 2;
-    S.proc.dispbuffersize = S.ni.rate*2;
+    S.proc.dispdur = S.proc.bufferdur;
+    S.proc.dispbuffersize = S.ni.rate*S.proc.dispdur;
     S.proc.disptimedata = S.proc.procdata(end-S.proc.dispbuffersize+1:end,:); 
     S.proc.timevec = [-S.proc.dispdur:1/S.ni.rate:-1/S.ni.rate];
     S.proc.hxlims = [-S.proc.dispdur 0];
@@ -50,7 +50,7 @@ if S.proc.timeseries == 1;
     
 end
 if S.proc.specgram == 1;
-    S.proc.window = S.ni.rate;
+    S.proc.window = round(S.ni.rate*S.proc.bufferdur)/2;
     S.proc.noverlap = S.proc.window*0.5;
     S.proc.nfft = 2^nextpow2(S.proc.window)*2;
     [SP,S.proc.freqvec,S.proc.tvec,P] = spectrogram(S.proc.procdata(:,2), S.proc.window, S.proc.noverlap,S.proc.nfft, S.ni.rate,'yaxis');
@@ -58,9 +58,16 @@ if S.proc.specgram == 1;
     [S.proc.termoramp,ind] = max(S.proc.psddata);
     S.proc.termorfreq = S.proc.freqvec(ind);
     S.proc.fxlims = [S.proc.freqvec(1) 50];
-    [S.proc.filterb,S.proc.filtera] = butter(2, [3 30]/(S.ni.rate/2), 'bandpass');
+    [S.proc.filterb,S.proc.filtera] = butter(2, [1 50]/(S.ni.rate/2), 'bandpass');
 end
    
+if S.proc.plvcalc == 1;
+    [S.proc.plv.counts, S.proc.plv.centers] = hist(rand(1,100),30);
+    S.proc.plv.tot_phase = 0;
+    S.proc.plv.R = 0;
+    S.proc.plv.targetphase = 0;
+end
+
 % check for calibration file
 if S.accel.donecalib == 1
     S.proc.callibration.g0 = S.accel.callibration.g0;
@@ -74,6 +81,7 @@ end
 function NIPstartStim
 global S
 
+set(S.stim.rampbut,'value',0)
 S.proc.closetheloop = 1;
 set(S.proc.closedloopbut,'String','Stop CL','Callback','NIprocess_closedLoop(''stopStim'')','backgroundcolor',[1 0 0])
 
@@ -96,9 +104,9 @@ if S.proc.timeseries == 1
         delete(S.proc.a1)
     end
     S.proc.a1 = axes('parent', S.fig.tab3);
-    set(S.proc.a1,'position',[0.1 0.6 0.85 0.35])
+    set(S.proc.a1,'position',[0.1 0.63 0.85 0.32])
     S.proc.p1 = plot(S.proc.timevec,S.proc.disptimedata);
-    xlabel('Time (s)')
+    %xlabel('Time (s)')
     ylabel('Amp (V)')
     xlim(S.proc.hxlims)
     l = legend(S.proc.chilabel);
@@ -110,15 +118,26 @@ if S.proc.specgram == 1
         delete(S.proc.a2)
     end
     S.proc.a2 = axes('parent', S.fig.tab3);
-    set(S.proc.a2,'position',[0.1 0.15 0.85 0.35])
+    set(S.proc.a2,'position',[0.1 0.15 0.4 0.35])
     S.proc.p2 = plot(S.proc.freqvec,S.proc.psddata);
     hold on
     S.proc.p3 = plot(S.proc.termorfreq,S.proc.termoramp,'r.');
     
     xlabel('Frequency (Hz)')
     ylabel('PSD')
-    title(['Tremor -  Peak Freq = ' num2str(S.proc.termorfreq) ', Peak Amp = ' num2str(S.proc.termoramp)])
+    title(['Tremor Freq = ' num2str(S.proc.termorfreq)])
     xlim(S.proc.fxlims)
+end
+if S.proc.plvcalc == 1
+    S.proc.a3 = axes('parent', S.fig.tab3);
+    set(S.proc.a3,'position',[0.55 0.15 0.45 0.35])
+    
+    polar(0, 0.15);
+    hold on;
+    S.proc.plv.H = polar(S.proc.plv.centers,S.proc.plv.counts./sum(S.proc.plv.counts),'b');
+    hold on
+    S.proc.plv.L = polar([0 S.proc.plv.tot_phase],[0 S.proc.plv.R],'r');
+    title(['Phase Diff = ' num2str(S.proc.plv.tot_phase)])
 end
 
 %--------------------------------------------------------------------------
@@ -147,9 +166,11 @@ if S.proc.timeseries == 1
     
     S.proc.procdata(:,1) = S.proc.rawdata(:,1);
     S.proc.procdata(:,2) = sqrt(displace(:,1).^2 + displace(:,2).^2 + displace(:,3).^2);
+    S.proc.procdata(:,2) = S.proc.procdata(:,2)-mean(S.proc.procdata(:,2));
     S.proc.procdata(:,2) = filter(S.proc.filterb,S.proc.filtera,S.proc.procdata(:,2));
     
     S.proc.disptimedata = S.proc.procdata(end-S.proc.dispbuffersize+1:end,:);
+    S.proc.disptimedata(:,2) = 1000*S.proc.disptimedata(:,2);
     for n = 1:S.proc.chdisp
         set(S.proc.p1(n),'ydata',S.proc.disptimedata(:,n))
     end
@@ -157,6 +178,19 @@ if S.proc.timeseries == 1
 end
 
 if S.proc.specgram == 1
+%     
+%     %NFFT = 2^nextpow2(L); % Next power of 2 from length of y
+%     NFFT = length(S.proc.procdata(:,2));
+%     L = NFFT;
+%     Y = fft(S.proc.procdata(:,2),NFFT)/L;
+%     Ymag = 2*abs(Y(1:round(NFFT/2)+1));
+%     phase = angle(Y(1:round(NFFT/2)+1));
+%     f = S.ni.rate/2*linspace(0,1,round(NFFT/2)+1);
+%     [dum,ind] = max(Ymag);
+%     S.proc.termorfreq = f(ind);
+%     S.proc.termorphase = phase(ind);
+
+    
     [SP,f,t,P] = spectrogram(S.proc.procdata(:,2), S.proc.window, S.proc.noverlap,S.proc.nfft, S.ni.rate,'yaxis');
     S.proc.psddata = mean(abs(P)');
     [S.proc.termoramp,ind] = max(S.proc.psddata);
@@ -165,13 +199,68 @@ if S.proc.specgram == 1
     set(S.proc.p2,'ydata',S.proc.psddata)
     set(S.proc.p3,'ydata',S.proc.termoramp)
     set(S.proc.p3,'xdata',S.proc.termorfreq)
-    title(['Tremor -  Peak Freq = ' num2str(S.proc.termorfreq) ', Peak Amp = ' num2str(S.proc.termoramp)])
+    
+    axes(S.proc.a2)
+%     hold off
+%     plot(f,Ymag)
+%     hold on
+%     plot(S.proc.termorfreq,Ymag(ind),'r.')
+%     xlim([0 50])
+    title(['Tremor Freq = ' num2str(S.proc.termorfreq)])
+    
+end
+
+if S.proc.plvcalc == 1
+    stimphase = angle(hilbert(S.proc.procdata(:,1)));
+    tremorphase = angle(hilbert(S.proc.procdata(:,2)));
+    phasediff = stimphase - tremorphase;
+    phasediff = removejumps(phasediff);
+    
+    [S.proc.plv.counts, S.proc.plv.centers] = hist(phasediff,30);
+    
+    [S.proc.plv.R, S.proc.plv.tot_phase] = uniformtest(S.proc.plv.centers, S.proc.plv.counts);
+    
+    axes(S.proc.a3)
+%     hold off
+%     plot(stimphase,'r')
+%     hold on
+%     plot(tremorphase,'b')
+    %hist(phasediff,30);
+    
+    hold off
+    polar(0, 0.15);
+    hold on;
+    S.proc.plv.H = polar(S.proc.plv.centers,S.proc.plv.counts./sum(S.proc.plv.counts),'b');
+    hold on
+    S.proc.plv.L = polar([0 S.proc.plv.tot_phase],[0 S.proc.plv.R],'r');
+    title(['Phase Diff = ' num2str(180*(S.proc.plv.tot_phase/pi))])
+%     
+%     set(S.proc.plv.H, 'xdata', S.proc.plv.centers);
+%     set(S.proc.plv.H, 'ydata', S.proc.plv.counts./sum(S.proc.plv.counts));
+%     set(S.proc.plv.L, 'xdata', [0 S.proc.plv.tot_phase]);
+%     set(S.proc.plv.L, 'ydata', [0 S.proc.plv.R]);
 end
 
 if S.proc.closetheloop == 1;
-    currentStimFreq = str2num(get(S.stim.freqbut,'string'))
-    if S.proc.termorfreq~=currentStimFreq
-        set(S.stim.freqbut,'string',num2str(S.proc.termorfreq));
+    currentStimFreq = str2num(get(S.stim.freqbut,'string'));
+    currentStimFreq = round(currentStimFreq*10)/10;
+    termorfreq = round(S.proc.termorfreq*10)/10;
+    
+    phasedif = round((S.proc.plv.tot_phase/pi)*10)/10;
+    targetphase = S.proc.plv.targetphase;
+    
+    if termorfreq~=currentStimFreq | phasedif ~= targetphase
+        set(S.stim.freqbut,'string',num2str(termorfreq));
+        disp(['Updating stimulation frequency to ' num2str(termorfreq)])
+        
+        changephase = targetphase - phasedif;
+        currentphase = str2num(get(S.stim.phasebut,'string'));
+        changephase = mod(currentphase - changephase,1);
+        set(S.stim.phasebut,'string',changephase)
+        
+        %set(S.stim.phasebut,'string',S.proc.termorphase/pi)     
+        disp(['Updating stimulation phase to ' num2str(S.proc.termorphase/pi)])
+        
         if S.stim.stim == 0
             NIStim('startStim')
         else
@@ -188,3 +277,29 @@ AccelData(:,1) = 9.81*(rawdata(:,1)-S.proc.callibration.g0(1))/S.proc.callibrati
 AccelData(:,2) = 9.81*(rawdata(:,2)-S.proc.callibration.g0(2))/S.proc.callibration.g1(2);
 AccelData(:,3) = 9.81*(rawdata(:,3)-S.proc.callibration.g0(3))/S.proc.callibration.g1(3);
 
+%--------------------------------------------------------------------------
+function PhaseDiff_removed = removejumps(PhaseDiff, tol)
+if nargin <2
+    tol = pi;
+end
+PhaseDiff_removed = PhaseDiff;
+for r = 1:length(PhaseDiff_removed)
+    if PhaseDiff_removed(r)< -pi
+        PhaseDiff_removed(r)= PhaseDiff_removed(r)+2*pi;
+    elseif PhaseDiff_removed(r)> pi
+        PhaseDiff_removed(r) = PhaseDiff_removed(r)-2*pi;
+    end
+end
+    
+%--------------------------------------------------------------------------
+function [R, tot_phase,pvalue] = uniformtest(centers, counts)
+
+n = sum(counts);
+c = counts./n.*exp(1i*centers);
+
+tot = sum(c);
+tot_phase = angle(tot);
+% pvalue = exp(sqrt(1+4*n+4*(n^2-R^2))-(1+2*n));2
+R = abs(tot);
+zvalue = n*R^2;
+pvalue = exp(-zvalue);
