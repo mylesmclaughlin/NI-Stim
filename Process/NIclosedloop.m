@@ -14,7 +14,10 @@ switch command
     case 'queueStim'
         NICLqueueStim(input1)
     case 'startStim'
-        NICLstartStim
+        if nargin<2
+            input1 = 0;
+        end
+        NICLstartStim(input1)
     case 'stopStim'
         NICLstopStim
 end
@@ -44,7 +47,7 @@ OUT = daq.createSession('ni');
 chOut = addAnalogOutputChannel(OUT,CL.ni.devname,CL.ni.chout, 'Voltage');
 RH = addlistener(OUT,'DataRequired',@(src,event) NIclosedloop(src,event,2));
 OUT.IsContinuous = 1;
-OUT.NotifyWhenScansQueuedBelow = S.ni.buffersize;
+OUT.NotifyWhenScansQueuedBelow = 2*S.ni.buffersize;
 
 triggerData = zeros(S.ni.buffersize,1);
 nTrigSamps = round(S.trigger.dur*1e-3*OUT.Rate);
@@ -55,17 +58,23 @@ S.stim.data(:,2) = zeros(S.ni.buffersize,1);
 queueOutputData(OUT,S.stim.data);
 queueOutputData(OUT,S.stim.data);
 
+queueOutputData(OUT,S.stim.data);
+queueOutputData(OUT,S.stim.data);
+
 %--------------------------------------------------------------------------
 function NICLdata
 global S
 % test phase extraction
 accel = sqrt(S.rec.procplotdata(:,4).^2 + S.rec.procplotdata(:,5).^2 + S.rec.procplotdata(:,6).^2);
 accel = accel-mean(accel);
-tremorphase = angle(hilbert(S.rec.procplotdata(:,5) - mean(S.rec.procplotdata(:,5))));
-S.rec.procplotdata(:,2) = tremorphase;
+tremorphase = angle(hilbert(accel));
+
+%S.rec.procplotdata(:,2) = tremorphase;
 %tvec = [1/NI.Rate:1/NI.Rate:length(eventData(:,2))/S.ni.rate];
-closedloopstim = S.stim.amplitude*cos(tremorphase')';
-S.rec.procplotdata(:,3) = closedloopstim;
+
+
+closedloopstim = S.stim.amplitude*cos(tremorphase' + S.rec.closedloopphasedelay)';
+%S.rec.procplotdata(:,3) = closedloopstim;
 
 S.stim.data(:,2) = closedloopstim(end-S.ni.buffersize+1:end);
 %--------------------------------------------------------------------------
@@ -74,13 +83,15 @@ global OUT S
 queueOutputData(OUT,S.stim.data);
 
 %--------------------------------------------------------------------------
-function NICLstartStim
-global OUT 
+function NICLstartStim(input1)
+global OUT S
+
+S.rec.closedloopphasedelay = input1;
 OUT.startBackground();
 disp('Starting closed-loop stimulation')
 
 %--------------------------------------------------------------------------
 function NICLstopStim
 global OUT 
-stop(OUT)
+OUT.stop
 disp('Stopping closed-loop stimulation')

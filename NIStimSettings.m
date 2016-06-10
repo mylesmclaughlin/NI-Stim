@@ -53,7 +53,7 @@ elseif strcmp(S.ni.description,'National Instruments USB-6343')
     S.ni.chin = [1 2 3 18 19 22]; %[1 2]; % %[1 2 3 5]; %    %     [1 2]; %    %[1 2 3]; %  %[18 19 22 23]; % %  % % %
     S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'}; % {'Current','Voltage'}; %% {'BST','Non-BST','Trigger','Stim Voltage'}; %  
     S.ni.chout = [0 1]; %[0 1 2 3]; % 0 out is always trigger
-    S.ni.rate = 1000;%200e3; %200e3; %
+    S.ni.rate = 2000;%200e3; %200e3; %
     S.ni.voltrange = [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];  %[-1 1; -10 10]; %[-10 10; -10 10; -10 10; -10 10]; %  [-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','SingleEnded'};  %{'SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %%{'Differential','Differential','Differential'}; % %{'SingleEnded','Differential','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded'};
 elseif strcmp(S.ni.description,'no device')
@@ -122,7 +122,7 @@ S.trigger.chind = 3;
 
 %% ------ Stimulate ------
 S.stim.stim = 0;
-S.stim.amplitude = 1;
+S.stim.amplitude = 2;
 S.stim.frequency = 5;
 S.stim.phase = 0;
 S.stim.continuous = 1;
@@ -213,7 +213,7 @@ else
     S.rec.playbackmode = 1;
 end
 S.rec.rec = 0;
-S.rec.plotdur = 5;
+S.rec.plotdur = 1;
 S.rec.maxplotfs = 10e3; % limit the amount of samples plotted to speed up system
 if S.ni.rate <= S.rec.maxplotfs;
     S.rec.plotdownsample = 1;
@@ -240,6 +240,7 @@ S.rec.listenchind = 2;
 S.rec.listendata = [];
 
 S.rec.closedloop = 1;
+S.rec.closedloopphasedelay = 0;
 
 %% ------ Accelerometer ------
 S.accel.accel = 1;
