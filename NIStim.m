@@ -115,6 +115,10 @@ if S.current.present == 1
     CurrentControl('autoZero',S.current.name);
 end
 
+if S.rec.closedloop == 1
+    NIclosedloop('init');
+end
+
 % Make AO for listening to audio output
 % AO = NIlistenCreatObj;
 
@@ -1157,7 +1161,7 @@ end
 
 %-------------------------------------------------------------------------
 function NIclose
-global NI LH RH AO
+global NI LH RH AO S OUT
 
 if ~isempty(LH)
     delete(LH)
@@ -1172,6 +1176,11 @@ end
 if ~isempty(AO)
     AO.stop
     delete(AO)
+end
+
+if S.rec.closedloop
+    OUT.stop
+    delete(OUT)
 end
 
 %-------------------------------------------------------------------------
@@ -1215,6 +1224,10 @@ S.rec.rawplotdata = [S.rec.rawplotdata(S.rec.rawplotbuffersize+1:end,:); eventDa
 % else
 S.rec.procplotdata = S.rec.rawplotdata;
 %end
+
+if S.rec.closedloop
+    NIclosedloop('processdata')
+end
 
 % plot data
 if S.rec.showplot == 1

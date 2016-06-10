@@ -16,7 +16,7 @@ end
 %--------------------------------------------------------------------------
 function S = NIPsettings(S)
 
-S.proc.bufferdur = 5;
+S.proc.bufferdur = 2;
 S.proc.buffersize = S.ni.rate*S.proc.bufferdur;
 S.proc.rawdata = zeros(S.proc.buffersize,S.ni.nchin);
 S.proc.chdisp = 2;
@@ -27,7 +27,7 @@ S.proc.specgram = 1;
 S.proc.plvcalc = 1;
 
 if S.proc.timeseries == 1;
-    S.proc.dispdur = 3;%S.proc.bufferdur;
+    S.proc.dispdur = S.proc.bufferdur;
     S.proc.dispbuffersize = S.ni.rate*S.proc.dispdur;
     S.proc.disptimedata = S.proc.procdata(end-S.proc.dispbuffersize+1:end,:); 
     S.proc.timevec = [-S.proc.dispdur:1/S.ni.rate:-1/S.ni.rate];
@@ -170,9 +170,9 @@ if S.proc.timeseries == 1
     S.proc.procdata(:,2) = filter(S.proc.filterb,S.proc.filtera,S.proc.procdata(:,2));
     
     S.proc.disptimedata = S.proc.procdata(end-S.proc.dispbuffersize+1:end,:);
-    S.proc.disptimedata(:,2) = normalize(S.proc.disptimedata(:,2));
+  
     for n = 1:S.proc.chdisp
-        set(S.proc.p1(n),'ydata',S.proc.disptimedata(:,n))
+        set(S.proc.p1(n),'ydata',normalize(S.proc.disptimedata(:,n)))
     end
     
 end
@@ -242,31 +242,50 @@ if S.proc.plvcalc == 1
 end
 
 if S.proc.closetheloop == 1;
-    currentStimFreq = str2num(get(S.stim.freqbut,'string'));
-    currentStimFreq = round(currentStimFreq*10)/10;
-    termorfreq = round(S.proc.termorfreq*10)/10;
     
-    phasedif = round((S.proc.plv.tot_phase/pi)*10)/10;
-    targetphase = S.proc.plv.targetphase;
+    % delayed feedback
+    %termorfreq = round(S.proc.termorfreq*10)/10;
+    sampperphase = round(S.ni.rate/S.proc.termorfreq);
     
-    if termorfreq~=currentStimFreq | phasedif ~= targetphase
-        set(S.stim.freqbut,'string',num2str(termorfreq));
-        disp(['Updating stimulation frequency to ' num2str(termorfreq)])
-        
-        changephase = targetphase - phasedif;
-        currentphase = str2num(get(S.stim.phasebut,'string'));
-        changephase = mod(currentphase - changephase,1);
-        set(S.stim.phasebut,'string',changephase)
-        
-        %set(S.stim.phasebut,'string',S.proc.termorphase/pi)     
-        disp(['Updating stimulation phase to ' num2str(changephase/pi)])
-        
-        if S.stim.stim == 0
-            NIStim('startStim')
-        else
-            NIStim('updateStim')
-        end
-    end
+    phasedif = (S.proc.plv.tot_phase+pi)/(2*pi);
+    
+    %shift = round(sampperphase*phasedif);
+    %shift = shift+sampperphase;
+    %disp(['shift = ' num2str(shift)])
+    shift = 0;
+    
+    datasnip = S.proc.procdata(end-S.stim.buffersize+1-shift:end-shift,2);
+    S.stim.data(:,2) = normalize(datasnip);
+    
+    
+    
+    % closed-loop phase tracking
+%     currentStimFreq = str2num(get(S.stim.freqbut,'string'));
+%     currentStimFreq = round(currentStimFreq*10)/10;
+%     termorfreq = round(S.proc.termorfreq*10)/10;
+%     
+%     phasedif = round((S.proc.plv.tot_phase/pi)*10)/10;
+%     targetphase = S.proc.plv.targetphase;
+%     
+    
+%     if termorfreq~=currentStimFreq | phasedif ~= targetphase
+%         set(S.stim.freqbut,'string',num2str(termorfreq));
+%         disp(['Updating stimulation frequency to ' num2str(termorfreq)])
+%         
+%         changephase = targetphase - phasedif;
+%         currentphase = str2num(get(S.stim.phasebut,'string'));
+%         changephase = mod(currentphase - changephase,1);
+%         set(S.stim.phasebut,'string',changephase)
+%         
+%         %set(S.stim.phasebut,'string',S.proc.termorphase/pi)     
+%         disp(['Updating stimulation phase to ' num2str(changephase/pi)])
+%         
+%         if S.stim.stim == 0
+%             %NIStim('startStim')
+%         else
+%             NIStim('updateStim')
+%         end
+%     end
 end
 
 %--------------------------------------------------------------------------

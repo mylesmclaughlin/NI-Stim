@@ -13,14 +13,14 @@ else
     else
         devInd = [];
         for n = 1:length(device)
-            if strcmp(device(n).Description,'National Instruments USB-6343')
+            if strcmp(device(n).Description,'National Instruments USB-6216 (BNC)')
                 devInd = n;
                 break
             end
         end
         if isempty(devInd)
             for n = 1:length(device)
-                if strcmp(device(n).Description,'National Instruments USB-6216 (BNC)')
+                if strcmp(device(n).Description,'National Instruments USB-6343')
                     devInd = n;
                     break
                 end
@@ -50,12 +50,12 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
     disp(['Applying settings for ' S.ni.description])
-    S.ni.chin = [1 2]; %[1 2 3 18 19 22]; %[1 2 3 5]; %    %     [1 2]; %    %[1 2 3]; %  %[18 19 22 23]; % %  % % %
-    S.ni.chilabel = {'Current','Voltage'}; %%{'Current','Voltage','Trigger','X','Y','Z'}; % {'BST','Non-BST','Trigger','Stim Voltage'}; %  
+    S.ni.chin = [1 2 3 18 19 22]; %[1 2]; % %[1 2 3 5]; %    %     [1 2]; %    %[1 2 3]; %  %[18 19 22 23]; % %  % % %
+    S.ni.chilabel = {'Current','Voltage','Trigger','X','Y','Z'}; % {'Current','Voltage'}; %% {'BST','Non-BST','Trigger','Stim Voltage'}; %  
     S.ni.chout = [0 1]; %[0 1 2 3]; % 0 out is always trigger
-    S.ni.rate = 200e3; %200e3; %
-    S.ni.voltrange =  [-1 1; -10 10]; %[-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;]; %[-10 10; -10 10; -10 10; -10 10]; %  [-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %
-    S.ni.inputtype = {'SingleEnded','SingleEnded'}; %{'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %%{'Differential','Differential','Differential'}; % %{'SingleEnded','Differential','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded'};
+    S.ni.rate = 1000;%200e3; %200e3; %
+    S.ni.voltrange = [-1 1; -10 10; -10 10; -10 10; -10 10; -10 10;];  %[-1 1; -10 10]; %[-10 10; -10 10; -10 10; -10 10]; %  [-0.5 0.5; -0.5 0.5; -0.5 0.5;]; %
+    S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','SingleEnded'};  %{'SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %%{'Differential','Differential','Differential'}; % %{'SingleEnded','Differential','SingleEnded','SingleEnded','SingleEnded','SingleEnded'}; %{'SingleEnded','Differential','SingleEnded'};
 elseif strcmp(S.ni.description,'no device')
     S.ni.chin = [1 2 3 18 19 22];
     S.ni.chout = [0 1 2];
@@ -71,14 +71,14 @@ else % unknown device - try these settings
 end
 S.ni.nchin = length(S.ni.chin);
 S.ni.nchout = length(S.ni.chout);
-S.ni.nupdatespersec = 4; %2; % get data and update maximum of 5 times per second
+S.ni.nupdatespersec = 10; %2; % get data and update maximum of 5 times per second
 S.ni.buffersize = S.ni.rate/S.ni.nupdatespersec;
 S.ni.updateperiod = S.ni.buffersize/S.ni.rate;
-if S.ni.updateperiod<0.1
-    S = 'Update period is too fast';
-    disp(S)
-    return
-end
+% if S.ni.updateperiod<0.1
+%     S = 'Update period is too fast';
+%     disp(S)
+%     return
+% end
 
 %% ------ Add Paths ----
 S.path = [pwd '\'];
@@ -123,7 +123,7 @@ S.trigger.chind = 3;
 %% ------ Stimulate ------
 S.stim.stim = 0;
 S.stim.amplitude = 1;
-S.stim.frequency = 100;
+S.stim.frequency = 5;
 S.stim.phase = 0;
 S.stim.continuous = 1;
 S.stim.ramp = 1;
@@ -238,6 +238,8 @@ S.rec.showplot = 1; % swithc off plotting to speed up system
 S.rec.listen = 0;
 S.rec.listenchind = 2;
 S.rec.listendata = [];
+
+S.rec.closedloop = 1;
 
 %% ------ Accelerometer ------
 S.accel.accel = 1;
