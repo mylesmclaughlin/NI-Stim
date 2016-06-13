@@ -61,22 +61,33 @@ queueOutputData(OUT,S.stim.data);
 queueOutputData(OUT,S.stim.data);
 queueOutputData(OUT,S.stim.data);
 
+CL.start = 0;
+OUT.startBackground();
+
 %--------------------------------------------------------------------------
 function NICLdata
-global S
+global S CL
 % test phase extraction
 accel = sqrt(S.rec.procplotdata(:,4).^2 + S.rec.procplotdata(:,5).^2 + S.rec.procplotdata(:,6).^2);
 accel = accel-mean(accel);
+%accel = filtfilt(S.accel.filterb,S.accel.filtera,accel);
 tremorphase = angle(hilbert(accel));
+
+S.rec.procplotdata(:,2) = S.stim.amplitude*normalize(accel);
 
 %S.rec.procplotdata(:,2) = tremorphase;
 %tvec = [1/NI.Rate:1/NI.Rate:length(eventData(:,2))/S.ni.rate];
 
-
-closedloopstim = S.stim.amplitude*cos(tremorphase' + S.rec.closedloopphasedelay)';
+amplitude = S.stim.amplitude/S.current.onevoltequalsXmilliamps;
+closedloopstim = amplitude*cos(tremorphase' + S.rec.closedloopphasedelay)';
 %S.rec.procplotdata(:,3) = closedloopstim;
 
-S.stim.data(:,2) = closedloopstim(end-S.ni.buffersize+1:end);
+if CL.start == 1
+    S.stim.data(:,2) = closedloopstim(end-S.ni.buffersize+1:end);
+else
+    S.stim.data(:,2) = zeros(S.ni.buffersize,1);
+end
+
 %--------------------------------------------------------------------------
 function NICLqueueStim(input1)
 global OUT S
@@ -84,14 +95,18 @@ queueOutputData(OUT,S.stim.data);
 
 %--------------------------------------------------------------------------
 function NICLstartStim(input1)
-global OUT S
+global OUT S CL
+
+CL.start = 1;
 
 S.rec.closedloopphasedelay = input1;
-OUT.startBackground();
 disp('Starting closed-loop stimulation')
 
 %--------------------------------------------------------------------------
 function NICLstopStim
-global OUT 
-OUT.stop
+global OUT CL
+
+CL.start = 0;
+
+%OUT.stop
 disp('Stopping closed-loop stimulation')

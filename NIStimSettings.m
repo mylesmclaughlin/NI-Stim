@@ -254,7 +254,7 @@ else
     S.accel.callibration.g0 = [0 0 0];
     S.accel.callibration.g1 = [0 0 0];
 end
-S.accel.bandpass = [0.25 50];
+S.accel.bandpass = [2 50];
 S.accel.filterorder = 2;
 [S.accel.filterb S.accel.filtera] = butter(S.accel.filterorder,S.accel.bandpass/(S.ni.rate/2),'bandpass');
 S.accel.chinds = [4 5 6];
