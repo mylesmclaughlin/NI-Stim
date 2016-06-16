@@ -45,7 +45,7 @@ if strcmp(S.ni.description,'National Instruments USB-6216 (BNC)')
     S.ni.chin = [0 1 2 3 4 5];
     S.ni.chilabel = {'Current','MEP','Trigger','X','Y','Z'};% {'Current','Voltage','Trigger','X','Y','MeasEl'};%
     S.ni.chout = [0 1];
-    S.ni.rate = 1000; %2048; %1024; % % % 20e3; %  10e3; % 
+    S.ni.rate = 1024; %2048; %1024; % % % 20e3; %  10e3; % 
     S.ni.voltrange =  [-10 10; -10 10; -10 10; -10 10; -10 10; -10 10;];
     S.ni.inputtype = {'SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded','SingleEnded'};
 elseif strcmp(S.ni.description,'National Instruments USB-6343')
@@ -71,7 +71,7 @@ else % unknown device - try these settings
 end
 S.ni.nchin = length(S.ni.chin);
 S.ni.nchout = length(S.ni.chout);
-S.ni.nupdatespersec = 10; %2; % get data and update maximum of 5 times per second
+S.ni.nupdatespersec = 2; %10; %2; % get data and update maximum of 5 times per second
 S.ni.buffersize = S.ni.rate/S.ni.nupdatespersec;
 S.ni.updateperiod = S.ni.buffersize/S.ni.rate;
 % if S.ni.updateperiod<0.1
@@ -239,7 +239,7 @@ S.rec.listen = 0;
 S.rec.listenchind = 2;
 S.rec.listendata = [];
 
-S.rec.closedloop = 1;
+S.rec.closedloop = 0;
 S.rec.closedloopphasedelay = 0;
 
 %% ------ Accelerometer ------

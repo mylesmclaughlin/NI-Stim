@@ -16,7 +16,7 @@ end
 %--------------------------------------------------------------------------
 function S = NIPsettings(S)
 
-S.proc.bufferdur = 2;
+S.proc.bufferdur = 5;
 S.proc.buffersize = S.ni.rate*S.proc.bufferdur;
 S.proc.rawdata = zeros(S.proc.buffersize,S.ni.nchin);
 S.proc.chdisp = 2;
@@ -50,7 +50,7 @@ if S.proc.timeseries == 1;
     
 end
 if S.proc.specgram == 1;
-    S.proc.window = round(S.ni.rate*S.proc.bufferdur)/2;
+    S.proc.window = S.ni.rate; %round(S.ni.rate*S.proc.bufferdur)/2;
     S.proc.noverlap = S.proc.window*0.5;
     S.proc.nfft = 2^nextpow2(S.proc.window)*2;
     [SP,S.proc.freqvec,S.proc.tvec,P] = spectrogram(S.proc.procdata(:,2), S.proc.window, S.proc.noverlap,S.proc.nfft, S.ni.rate,'yaxis');
@@ -245,47 +245,47 @@ if S.proc.closetheloop == 1;
     
     % delayed feedback
     %termorfreq = round(S.proc.termorfreq*10)/10;
-    sampperphase = round(S.ni.rate/S.proc.termorfreq);
-    
-    phasedif = (S.proc.plv.tot_phase+pi)/(2*pi);
-    
+%     sampperphase = round(S.ni.rate/S.proc.termorfreq);
+%     
+%     phasedif = (S.proc.plv.tot_phase+pi)/(2*pi);
+%     
     %shift = round(sampperphase*phasedif);
     %shift = shift+sampperphase;
     %disp(['shift = ' num2str(shift)])
-    shift = 0;
+    %shift = 0;
     
-    datasnip = S.proc.procdata(end-S.stim.buffersize+1-shift:end-shift,2);
-    S.stim.data(:,2) = normalize(datasnip);
+    %datasnip = S.proc.procdata(end-S.stim.buffersize+1-shift:end-shift,2);
+    %S.stim.data(:,2) = normalize(datasnip);
     
     
     
     % closed-loop phase tracking
-%     currentStimFreq = str2num(get(S.stim.freqbut,'string'));
-%     currentStimFreq = round(currentStimFreq*10)/10;
-%     termorfreq = round(S.proc.termorfreq*10)/10;
+     currentStimFreq = str2num(get(S.stim.freqbut,'string'));
+     currentStimFreq = round(currentStimFreq*10)/10;
+     termorfreq = round(S.proc.termorfreq*10)/10;
 %     
 %     phasedif = round((S.proc.plv.tot_phase/pi)*10)/10;
 %     targetphase = S.proc.plv.targetphase;
 %     
     
-%     if termorfreq~=currentStimFreq | phasedif ~= targetphase
-%         set(S.stim.freqbut,'string',num2str(termorfreq));
-%         disp(['Updating stimulation frequency to ' num2str(termorfreq)])
-%         
-%         changephase = targetphase - phasedif;
-%         currentphase = str2num(get(S.stim.phasebut,'string'));
-%         changephase = mod(currentphase - changephase,1);
-%         set(S.stim.phasebut,'string',changephase)
-%         
-%         %set(S.stim.phasebut,'string',S.proc.termorphase/pi)     
-%         disp(['Updating stimulation phase to ' num2str(changephase/pi)])
-%         
-%         if S.stim.stim == 0
-%             %NIStim('startStim')
-%         else
-%             NIStim('updateStim')
-%         end
-%     end
+    if termorfreq~=currentStimFreq 
+        set(S.stim.freqbut,'string',num2str(termorfreq));
+        disp(['Updating stimulation frequency to ' num2str(termorfreq)])
+        
+        %changephase = targetphase - phasedif;
+        %currentphase = str2num(get(S.stim.phasebut,'string'));
+        %changephase = mod(currentphase - changephase,1);
+        %set(S.stim.phasebut,'string',changephase)
+        
+        %set(S.stim.phasebut,'string',S.proc.termorphase/pi)     
+        %disp(['Updating stimulation phase to ' num2str(changephase/pi)])
+        
+        if S.stim.stim == 0
+            %NIStim('startStim')
+        else
+            NIStim('updateStim')
+        end
+    end
 end
 
 %--------------------------------------------------------------------------
