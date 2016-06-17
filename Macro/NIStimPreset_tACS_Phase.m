@@ -11,20 +11,20 @@ P.preset.record = 1; % 1 = play stimulus and record data. 0 = play stimulus only
 %% Set fixed variables for easy modification
 
 % sub-threshold (base) settings
-subThresAmp = [0 0.2 0.4 0.6];
-subThresFreq = 2; %[0.5 1 2 4 8 16 32 64];
+subThresAmp = 0.6;%[0 0.2 0.4 0.6];
+subThresFreq = 4; %[0.5 1 2 4 8 16 32 64];
 subThresDC = 0;
 %subThresNcycles = 5;
-subThresNumberreps = 5;
-subThresDurOn = 2; %subThresNcycles*(1/subThresFreq);
-subThresDurOff = 0.5;
+subThresNumberreps = 10;
+subThresDurOn = 1; %subThresNcycles*(1/subThresFreq);
+subThresDurOff = 0;
 
 % supra-threshold (probe pulse train) settings
 phaseDelay = [0:0.125:1]; %[0.25:0.25:1]; % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
-supThresBurstDelaySeq = 1000 + 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = 2.6;
-supThresFreq = 300;
-supThresBurstdur = 100;
+supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelay;
+supThresAmp = 3.7;
+supThresFreq = 500;
+supThresBurstdur = 20;
 supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 supThresWaveformindex = 2; % biphasic pulse
 supThresPhase1pulsewidth = 200;

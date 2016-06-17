@@ -155,6 +155,7 @@ if strcmp (wantPlot,'plot')
             errorbar(P.phase,P.respAmpX(:,i),P.respSTDX(:,i),[copo{i} '.-'])
             hold on
         end
+        plot(P.phase,mean(P.respAmpX'),'k','linewidth',2)
         xlabel('Phase')
         title(['X-axis' num2str(P.subthresholdfrequency) ' Hz subthreshold stim'])
         
@@ -163,6 +164,7 @@ if strcmp (wantPlot,'plot')
             errorbar(P.phase,P.respAmpY(:,i),P.respSTDY(:,i),[copo{i} '.-'])
             hold on
         end
+        plot(P.phase,mean(P.respAmpY'),'k','linewidth',2)
         xlabel('Phase')
         title(['Y-axis' num2str(P.subthresholdfrequency) ' Hz subthreshold stim'])
         
@@ -171,6 +173,7 @@ if strcmp (wantPlot,'plot')
             errorbar(P.phase,P.respAmpZ(:,i),P.respSTDZ(:,i),[copo{i} '.-'])
             hold on
         end
+        plot(P.phase,mean(P.respAmpZ'),'k','linewidth',2)
         xlabel('Phase')
         title(['Z-axis' num2str(P.subthresholdfrequency) ' Hz subthreshold stim'])
         
