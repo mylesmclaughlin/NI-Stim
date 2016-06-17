@@ -26,6 +26,9 @@ S.proc.timeseries = 1;
 S.proc.specgram = 1;
 S.proc.plvcalc = 1;
 
+S.proc.timer = 0; % timer counter
+S.proc.updatetime = 5; % update stim settings every X secs
+
 if S.proc.timeseries == 1;
     S.proc.dispdur = S.proc.bufferdur;
     S.proc.dispbuffersize = S.ni.rate*S.proc.dispdur;
@@ -267,8 +270,9 @@ if S.proc.closetheloop == 1;
 %     phasedif = round((S.proc.plv.tot_phase/pi)*10)/10;
 %     targetphase = S.proc.plv.targetphase;
 %     
-    
-    if termorfreq~=currentStimFreq 
+    S.proc.timer = S.proc.timer + (S.stim.buffersize/NI.Rate);
+    if termorfreq~=currentStimFreq & S.proc.timer>S.proc.updatetime
+        S.proc.timer = 0;
         set(S.stim.freqbut,'string',num2str(termorfreq));
         disp(['Updating stimulation frequency to ' num2str(termorfreq)])
         

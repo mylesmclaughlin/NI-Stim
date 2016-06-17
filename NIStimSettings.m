@@ -151,6 +151,7 @@ S.stim.stoppingmode = 0;
 S.stim.randomizesequence = 0;
 S.stim.series.amplitude = [1 1.1 1.2];
 S.stim.series.burstrepperiod = 500;
+S.stim.buffersize = S.ni.buffersize;
 
 %% ----- Base Stimulus ----
 S.basestim.stim = 0;
