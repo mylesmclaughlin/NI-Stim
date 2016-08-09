@@ -821,14 +821,21 @@ elseif sum(strcmpi(S.stim.waveformlist(S.stim.waveformindex),{'pulse-series','tr
     sampperseries = round(NI.Rate*(S.stim.series.burstrepperiod/1000)); 
     seriesvec = zeros(sampperseries,1);
     stimData = [];
+    blankData = [];
     for n = 1:length(S.stim.series.amplitude)
         locStimData = seriesvec;
+        locBlankData = seriesvec;
         locStimData(1:length(pulseTrain)) = (S.stim.series.amplitude(n)/S.current.onevoltequalsXmilliamps) * pulseTrain; 
+        if S.ampblank.on == 1;
+            locBlankData(1:length(pulseTrain)) = S.ampblank.pulsetrain;
+        end
         stimPulseSeriesInd(1,n) = length(stimData)+1;
         stimPulseSeriesInd(2,n) = stimPulseSeriesInd(1,n) + length(pulseTrain);
         stimData = [stimData; locStimData];
+        blankData = [blankData; locBlankData];
     end
     
+    S.ampblank.pulsetrain = blankData;
     stimDataTrans = stimData;
     
 elseif strcmpi(S.stim.waveformlist(S.stim.waveformindex),'custom')
@@ -895,6 +902,7 @@ else
             S.stim.transitiondata(:,1) = triggerData;
         end
         if S.ampblank.on == 1;
+                S.ampblank.pulsetrain = S.ampblank.pulsetrain(1:length(S.stim.data));
             for n = 1:length(S.ampblank.pulsechind)
                 S.stim.data(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;
                 S.stim.transitiondata(:,S.ampblank.pulsechind(n)) = S.ampblank.pulsetrain;

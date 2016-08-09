@@ -61,7 +61,7 @@ if S.proc.specgram == 1;
     [S.proc.termoramp,ind] = max(S.proc.psddata);
     S.proc.termorfreq = S.proc.freqvec(ind);
     S.proc.fxlims = [S.proc.freqvec(1) 50];
-    [S.proc.filterb,S.proc.filtera] = butter(2, [3 50]/(S.ni.rate/2), 'bandpass');
+    [S.proc.filterb,S.proc.filtera] = butter(2, [4 50]/(S.ni.rate/2), 'bandpass');
 end
    
 if S.proc.plvcalc == 1;
