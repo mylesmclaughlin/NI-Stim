@@ -38,6 +38,7 @@ for n = 1:length(A.seqparametervalues)
     newA(n).macro = num2str(newA(n).phase);
     newA(n).sampWin = A.sampWin;
     newA(n).baseStimFreq = P.basestim.frequency;
+    newA(n).baseStimAmp = P.basestim.amplitude;
     for m = 1:nrep
         eval(['newA(n).allData' num2str(m) ' = squeeze(newA(n).allData(:,' num2str(m) ',:,:));' ]);
     end

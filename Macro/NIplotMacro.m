@@ -90,7 +90,7 @@ elseif strcmp(A.seqparametername,'amplitude')
 elseif strcmp(A.seqparametername,'phasegap')
     P.ampVec = A.phasegap;
 end
-
+P.phase = [Ain.phase];
 % [P.freqVec,sInd] = sort(P.freqVec);
 % P.respAmpX = P.respAmpX(sInd,:);
 % P.respAmpY = P.respAmpY(sInd,:);
