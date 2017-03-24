@@ -1,9 +1,13 @@
 function D = CurrentControl(command,name)
 
 
-hit = strfind(name,'DS5');
-if ~isempty(hit)
-    name = 'Digitimer DS5';
+if ischar(name)
+    hit = strfind(name,'DS5');
+    if ~isempty(hit)
+        name = 'Digitimer DS5';
+    end
+elseif iscell(name)
+    name = name{1};
 end
 
 switch command
@@ -20,6 +24,7 @@ end
 %--------------------------------------------------------------------------
 function   D = CCconnect(name);
 
+name
 switch name
     case 'Digitimer DS5'
         D = DS5control('connect');

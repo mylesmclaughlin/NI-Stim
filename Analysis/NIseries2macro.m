@@ -12,6 +12,7 @@ nrep = length(amplitude);
 %load bin file
 sampWin = [1/A.fs*1000 repperiod]; 
 nshift = round(sampWin(2)/1e3*A.fs);
+
 for n = 1:length(A.seqparametervalues)
     avgData = [];
     stdData = [];

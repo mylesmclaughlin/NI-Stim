@@ -32,13 +32,10 @@ sampVec = [round(sampWin(1)/1e3*fs):round(sampWin(2)/1e3*fs)];
 trigChInd = 3;
 trigLevel = 0.5;
 
-
 %detrend data
 for n = 1:length(detrendChIndex)
     D.data(:,detrendChIndex(n)) = detrend(D.data(:,detrendChIndex(n)));
 end
-
-
 
 part = 1;
 allData = [];
@@ -100,7 +97,7 @@ trigArtInd = find(A.tvec<15e-3);
 stimStartInd = trigArtInd(end)+1;
 
 A.allDisp = zeros(size(A.allData));
-A.nCh = size(A.allData,3);
+A.nCh = size(A.allData,3)
 
 for n = 1:length(A.seqIndex)
     for m = 1:A.nCh

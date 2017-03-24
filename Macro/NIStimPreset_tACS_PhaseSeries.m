@@ -17,13 +17,14 @@ subThresDC = 0;
 subThresNumberreps = 5;
 
 % supra-threshold (probe pulse train) settings
-phaseDelay = [0:0.125:1];%[0:0.25:1]; %[0:0.0025:0.01]; % % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
+phaseDelay =  [0:0.125:1];% [0:0.25:1]; % %[0:0.0025:0.01]; % % phaseDelay in function of subthreshold stim frequency - 0 = 0; 1 = 2*pi 
+makebasezero = 0; % set to 1 to collect data with no TACS 
 supThresBurstDelaySeq = 1000*(1/subThresFreq)*phaseDelay;
-supThresAmp = [2.8 2.8 2.8];
-supThresSeriesRepPeriod = 1500; % amplitudes above are presented xxx ms apart
+supThresAmp = [3.8 3.8 3.8];
+supThresSeriesRepPeriod = 2000; % amplitudes above are presented xxx ms apart
 
-% supThresFreq = 300;
-% supThresBurstdur = 34;
+supThresFreq = 300;
+supThresBurstdur = 34;
 % supThresFreq = 400;
 % supThresBurstdur = 25;
 % supThresFreq = 500;
@@ -31,9 +32,11 @@ supThresSeriesRepPeriod = 1500; % amplitudes above are presented xxx ms apart
 % supThresFreq = 600;
 % supThresBurstdur = 17;
 % supThresFreq = 700;
-% supThresBurstdur = 15;
-supThresFreq = 800;
-supThresBurstdur = 13;
+% supThresBurstdur = 14.5;
+% supThresFreq = 800;
+% supThresBurstdur = 13;
+% supThresFreq = 900;
+% supThresBurstdur = 11.5;
 % supThresFreq = 1000;
 % supThresBurstdur = 10;
 
@@ -48,7 +51,6 @@ supThresBurstrepperiod = 1000*(subThresDurOn+subThresDurOff); % ms
 
 % specify how to combine supra and sub stimuli
 stimcombinemethod = 'add-zerocenter';  % 'add', 'add-zerocenter' ,'stop-insert';  
-makebasezero = 0;
 
 disp(['This stimulus will take ' num2str((subThresDurOn + subThresDurOff)/60*subThresNumberreps*length(supThresBurstDelaySeq)*length(subThresAmp)) ' minutes'])
 
