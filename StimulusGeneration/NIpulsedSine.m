@@ -1,4 +1,4 @@
-function A = pulsedSine(pulsewidth,pulserate,sinfreq,duration,fs)
+function [A,sinwave] = pulsedSine(pulsewidth,pulserate,sinfreq,duration,fs)
 
 if length(duration)==2
     totaldur = duration(2);
@@ -28,9 +28,9 @@ nTrigSamps = round(triggerdur*1e-3*fs);
 trigger(1:nTrigSamps) = triggeramp;
 
 figure
-%plot(tvec,sinwave,'r')
-%hold on
-%plot(tvec,pulseTrain,'k')
+plot(tvec,sinwave,'r')
+hold on
+plot(tvec,pulseTrain,'k')
 plot(tvec,sig,'b')
 hold on
 plot(tvec,trigger,'m')
@@ -44,7 +44,6 @@ pathname = 'C:\Users\Public\MATLAB\NI-Stim\Stimuli\';
 filename = ['pulsedSin__sinfreq=' num2str(sinfreq) '_pulsewidth=' num2str(pulsewidth) '_pulserate=' num2str(pulserate) '_fs=' num2str(fs) '.mat'];
 disp(['Saving ' pathname filename])
 save([pathname filename],'A')
-
 
 %--------------------------------------------------------------------------
 function pulseTrain = makePulseTrain(pulse,burstdur,fs)
